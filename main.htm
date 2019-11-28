@@ -1,0 +1,116 @@
+<!doctype html><meta charset=utf-8>
+<style>
+#controls input[type=text] {width:30px}
+#sidebar {width:300px;background:#ddf}
+video{max-width:100%;transform:scaleX(-1)}
+svg{position:fixed; left:320px; top:10px;}
+</style>
+
+<div id=sidebar>
+<video autoplay></video>
+
+<select id=algorithm onchange='loadWorker(this.value)'>
+<option value=squiggle.js>Squiggle</option>
+<option value=squiggleLeftRight.js>Squiggle Left/Right</option>
+<option value=spiral.js>Spiral</option>
+</select>
+
+<form id=controls></form>
+</div>
+
+<svg></svg>
+
+<script>
+svg=document.querySelector('svg');
+video=document.querySelector('video');
+canvas=document.createElement("canvas")
+ctx=canvas.getContext("2d")
+
+
+navigator.mediaDevices.getUserMedia({video: true}).then(function(v) {
+  video.srcObject = v;
+//  video.onplay=function(){process()}
+}).catch(function(e){console.log(e)});
+
+function process(){
+  // config width height should come from sliders maybe?
+  [config.width, config.height] = [canvas.width, canvas.height] = [video.videoWidth, video.videoHeight];
+
+  ctx.drawImage(video, 0, 0)
+  myWorker.postMessage([ window.config, ctx.getImageData(0,0,config.width,config.height) ]);
+}
+
+
+function loadWorker(src){
+  window.myWorker = new Worker(src); 
+  myWorker.onmessage = function(msg) {
+    const [type, data] = msg.data
+
+    // setup, declare parameters
+    if (type == 'sliders') {
+      controls.innerHTML="";
+      window.config = {};
+  
+      data.forEach(slider=>{
+        let s = document.createElement("input")
+        s.type="range"
+        Object.assign(s, slider)
+        let n = document.createElement('input')
+        n.type="text" // type=number does not allow fractions
+        n.pattern="\-?[0-9]+\.?[0-9]*"
+        let p = document.createElement('div')
+  
+        controls.append(slider.label)
+        p.append(s);
+        p.append(n)
+        controls.append(p)
+//        p.append(document.createElement("br"))
+
+        n.value = config[slider.label] = slider.value
+        s.oninput=e=>{config[slider.label] = Number( n.value = s.value ); process()}
+        n.oninput=e=>{config[slider.label] = Number( s.value = n.value ); process()}
+      })
+  
+    // message, e.g. progress bar
+    } else if (type == 'msg') {
+  
+  
+    // vector data result
+    } else if (type == 'points'){
+
+      // either a list of points, or a list of lists of points
+      if (typeof data[0][0] === "number") data = [data]
+
+      // erase existing contents
+      let c; while (c = svg.firstChild) svg.removeChild(c)
+      svg.setAttribute("width",config.width)
+      svg.setAttribute("height",config.height)
+      svg.setAttribute("viewbox", `0 0 ${config.width} ${config.height}`)
+
+      data.forEach(path => addPath(path))
+
+    }
+  
+  
+  
+  }
+
+
+}
+
+
+function addPath(points){
+  var pathstring = `M${points[0][0].toFixed(2)},${points[0][1].toFixed(2)} `;
+  for (let i=1;i<points.length;i++) pathstring+=`L${points[i][0].toFixed(2)},${points[i][1].toFixed(2)}`;
+
+  var p=document.createElementNS("http://www.w3.org/2000/svg", "path");
+  p.setAttributeNS(null, "style", "stroke-width: 2px; fill: none; stroke: rgb(0, 0, 0);")
+  p.setAttributeNS(null, "d", pathstring) 
+  svg.appendChild(p)
+}
+
+
+algorithm.onchange()
+
+
+</script>
