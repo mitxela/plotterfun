@@ -4,6 +4,7 @@
 #sidebar {width:300px;background:#ddf}
 video{max-width:100%;transform:scaleX(-1)}
 svg{position:fixed; left:320px; top:10px;}
+form{padding:5px}
 </style>
 
 <div id=sidebar>
@@ -16,6 +17,8 @@ svg{position:fixed; left:320px; top:10px;}
 </select>
 
 <form id=controls></form>
+
+<button onclick=download()>Download SVG</button>
 </div>
 
 <svg></svg>
@@ -25,6 +28,11 @@ svg=document.querySelector('svg');
 video=document.querySelector('video');
 canvas=document.createElement("canvas")
 ctx=canvas.getContext("2d")
+
+// TODO
+// normal image selection
+// width/height controls, resize webcam keeping aspect ratio
+
 
 
 navigator.mediaDevices.getUserMedia({video: true}).then(function(v) {
@@ -58,17 +66,20 @@ function loadWorker(src){
         let n = document.createElement('input')
         n.type="text" // type=number does not allow fractions
         n.pattern="\-?[0-9]+\.?[0-9]*"
+        let l = document.createElement('label')
         let p = document.createElement('div')
   
-        controls.append(slider.label)
-        p.append(s);
-        p.append(n)
-        controls.append(p)
-//        p.append(document.createElement("br"))
-
-        n.value = config[slider.label] = slider.value
+        s.value = n.value = config[slider.label] = slider.value //.assign already set value, but value has to be set after min/max are set
         s.oninput=e=>{config[slider.label] = Number( n.value = s.value ); process()}
         n.oninput=e=>{config[slider.label] = Number( s.value = n.value ); process()}
+
+        l.append(slider.label)
+        p.append(s);
+        if (!slider.type) p.append(n)
+        else if (slider.type=='checkbox') s.oninput=e=>{config[slider.label] = s.checked; process()}
+        l.append(p)
+        controls.append(l)
+
       })
   
     // message, e.g. progress bar
@@ -81,6 +92,7 @@ function loadWorker(src){
       // either a list of points, or a list of lists of points
       if (typeof data[0][0] === "number") data = [data]
 
+      svg.style.background=config.Inverted?"black":"white";
       // erase existing contents
       let c; while (c = svg.firstChild) svg.removeChild(c)
       svg.setAttribute("width",config.width)
@@ -104,11 +116,25 @@ function addPath(points){
   for (let i=1;i<points.length;i++) pathstring+=`L${points[i][0].toFixed(2)},${points[i][1].toFixed(2)}`;
 
   var p=document.createElementNS("http://www.w3.org/2000/svg", "path");
-  p.setAttributeNS(null, "style", "stroke-width: 2px; fill: none; stroke: rgb(0, 0, 0);")
+  p.setAttributeNS(null, "style", "stroke-width: 2px; fill: none; stroke: " + (config.Inverted?"white":"black"))
   p.setAttributeNS(null, "d", pathstring) 
   svg.appendChild(p)
 }
 
+function download(){
+  const svgString = '<?xml version="1.0" standalone="no"?>'
+    + '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">'
+    + (new XMLSerializer()).serializeToString(svg);
+  const blob = new Blob([svgString], {type: 'image/svg+xml;charset=utf-8'});
+
+  const svgUrl = URL.createObjectURL(blob);
+  const downloadLink = document.createElement("a");
+  downloadLink.href = svgUrl;
+  downloadLink.download = "squiggleCam_" + Date.now() + ".svg";
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  document.body.removeChild(downloadLink);
+}
 
 algorithm.onchange()
 
