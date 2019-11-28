@@ -1,5 +1,6 @@
 <!doctype html><meta charset=utf-8>
 <style>
+*{font-family:sans-serif}
 #controls input[type=text] {width:30px}
 #sidebar {width:300px;background:#ddf}
 video{max-width:100%;transform:scaleX(-1)}
@@ -8,8 +9,16 @@ form{padding:5px}
 </style>
 
 <div id=sidebar>
-<video autoplay></video>
 
+
+<div id=webcam>
+<video autoplay></video>
+<button onclick='video.paused?video.play():video.pause()'>Pause</button>
+<button onclick='snapshot()'>Use image</button>
+</div>
+
+
+Algorithm: 
 <select id=algorithm onchange='loadWorker(this.value)'>
 <option value=squiggle.js>Squiggle</option>
 <option value=squiggleLeftRight.js>Squiggle Left/Right</option>
@@ -29,10 +38,12 @@ video=document.querySelector('video');
 canvas=document.createElement("canvas")
 ctx=canvas.getContext("2d")
 
+config = {};
+
 // TODO
 // normal image selection
 // width/height controls, resize webcam keeping aspect ratio
-
+// upload to server option - pipe to hpgl python script or smoething
 
 
 navigator.mediaDevices.getUserMedia({video: true}).then(function(v) {
@@ -40,11 +51,18 @@ navigator.mediaDevices.getUserMedia({video: true}).then(function(v) {
 //  video.onplay=function(){process()}
 }).catch(function(e){console.log(e)});
 
-function process(){
+var imageset = false;
+function snapshot(){
+  imageset=true;
   // config width height should come from sliders maybe?
-  [config.width, config.height] = [canvas.width, canvas.height] = [video.videoWidth, video.videoHeight];
-
+  [canvas.width, canvas.height] = [video.videoWidth, video.videoHeight];
   ctx.drawImage(video, 0, 0)
+  process()
+}
+
+function process(){
+  if (!imageset) return;
+  [config.width, config.height] = [canvas.width, canvas.height]
   myWorker.postMessage([ window.config, ctx.getImageData(0,0,config.width,config.height) ]);
 }
 
@@ -52,12 +70,11 @@ function process(){
 function loadWorker(src){
   window.myWorker = new Worker(src); 
   myWorker.onmessage = function(msg) {
-    const [type, data] = msg.data
+    let [type, data] = msg.data
 
     // setup, declare parameters
     if (type == 'sliders') {
       controls.innerHTML="";
-      window.config = {};
   
       data.forEach(slider=>{
         let s = document.createElement("input")
@@ -68,8 +85,12 @@ function loadWorker(src){
         n.pattern="\-?[0-9]+\.?[0-9]*"
         let l = document.createElement('label')
         let p = document.createElement('div')
-  
-        s.value = n.value = config[slider.label] = slider.value //.assign already set value, but value has to be set after min/max are set
+
+        // Don't reset values when reloading controls with same name
+        if (config[slider.label]) slider.value = config[slider.label];
+        else config[slider.label] = slider.value;
+
+        s.value = n.value = config[slider.label] //.assign already set value, but value has to be set after min/max are set
         s.oninput=e=>{config[slider.label] = Number( n.value = s.value ); process()}
         n.oninput=e=>{config[slider.label] = Number( s.value = n.value ); process()}
 
@@ -81,6 +102,7 @@ function loadWorker(src){
         controls.append(l)
 
       })
+    process()
   
     // message, e.g. progress bar
     } else if (type == 'msg') {
@@ -100,14 +122,8 @@ function loadWorker(src){
       svg.setAttribute("viewbox", `0 0 ${config.width} ${config.height}`)
 
       data.forEach(path => addPath(path))
-
-    }
-  
-  
-  
+    } 
   }
-
-
 }
 
 
