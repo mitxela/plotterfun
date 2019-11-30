@@ -24,6 +24,7 @@ Algorithm:
 <option value=squiggleLeftRight.js>Squiggle Left/Right</option>
 <option value=spiral.js>Spiral</option>
 <option value=polyspiral.js>Polygon Spiral</option>
+<option value=stipple.js>Stippletest</option>
 </select>
 
 <form id=controls></form>
@@ -110,10 +111,7 @@ function loadWorker(src){
   
   
     // vector data result
-    } else if (type == 'points'){
-
-      // either a list of points, or a list of lists of points
-      if (typeof data[0][0] === "number") data = [data]
+    } else {
 
       svg.style.background=config.Inverted?"black":"white";
       // erase existing contents
@@ -122,7 +120,14 @@ function loadWorker(src){
       svg.setAttribute("height",config.height)
       svg.setAttribute("viewbox", `0 0 ${config.width} ${config.height}`)
 
-      data.forEach(path => addPath(path))
+      if (type == 'points') {
+        // either a list of points, or a list of lists of points
+        if (typeof data[0][0] === "number") data = [data]
+        data.forEach(path => addPath(path))
+      } else if (type == 'circles') {
+        data.forEach(addCircle)
+      }
+
     } 
   }
 }
@@ -135,6 +140,16 @@ function addPath(points){
   var p=document.createElementNS("http://www.w3.org/2000/svg", "path");
   p.setAttributeNS(null, "style", "stroke-width: 2px; fill: none; stroke: " + (config.Inverted?"white":"black"))
   p.setAttributeNS(null, "d", pathstring) 
+  svg.appendChild(p)
+}
+
+function addCircle(d){
+  var p=document.createElementNS("http://www.w3.org/2000/svg", "circle");
+  //p.setAttributeNS(null, "style", "stroke-width: 1px; fill: none; stroke: " + (config.Inverted?"white":"black"))
+  p.setAttributeNS(null, "style", "fill: " + (config.Inverted?"white":"black"))
+  p.setAttributeNS(null, "cx", d[0]) 
+  p.setAttributeNS(null, "cy", d[1]) 
+  p.setAttributeNS(null, "r",  d[2]) 
   svg.appendChild(p)
 }
 
