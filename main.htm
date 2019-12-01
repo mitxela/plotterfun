@@ -5,7 +5,7 @@
 #sidebar {width:300px;background:#ddf}
 video{max-width:100%;transform:scaleX(-1)}
 svg{position:fixed; left:320px; top:10px;}
-form{padding:5px}
+form{padding:5px; line-height:2em}
 </style>
 
 <div id=sidebar>
@@ -65,17 +65,20 @@ function snapshot(){
 function process(){
   if (!imageset) return;
   [config.width, config.height] = [canvas.width, canvas.height]
+  loadWorker(window.algo)
   myWorker.postMessage([ window.config, ctx.getImageData(0,0,config.width,config.height) ]);
 }
 
 
 function loadWorker(src){
-  window.myWorker = new Worker(src); 
+  if (window.myWorker) myWorker.terminate()
+  window.myWorker = new Worker(src);
   myWorker.onmessage = function(msg) {
     let [type, data] = msg.data
 
     // setup, declare parameters
     if (type == 'sliders') {
+      if (src==window.algo) return;
       controls.innerHTML="";
   
       data.forEach(slider=>{
@@ -93,17 +96,22 @@ function loadWorker(src){
         else config[slider.label] = slider.value;
 
         s.value = n.value = config[slider.label] //.assign already set value, but value has to be set after min/max are set
-        s.oninput=e=>{config[slider.label] = Number( n.value = s.value ); process()}
-        n.oninput=e=>{config[slider.label] = Number( s.value = n.value ); process()}
 
+        if (slider.type && slider.type=='checkbox') {
+          s.oninput=e=>{config[slider.label] = s.checked; process()}
+          l.append(s)  
+        } else {
+          s.oninput=e=>{config[slider.label] = Number( n.value = s.value ); process()}
+          n.oninput=e=>{config[slider.label] = Number( s.value = n.value ); process()}
+          p.append(s);
+          p.append(n)
+        }
         l.append(slider.label)
-        p.append(s);
-        if (!slider.type) p.append(n)
-        else if (slider.type=='checkbox') s.oninput=e=>{config[slider.label] = s.checked; process()}
         l.append(p)
         controls.append(l)
 
       })
+    window.algo=src
     process()
   
     // message, e.g. progress bar
@@ -132,20 +140,19 @@ function loadWorker(src){
   }
 }
 
-
+const svgNS = "http://www.w3.org/2000/svg"
 function addPath(points){
   var pathstring = `M${points[0][0].toFixed(2)},${points[0][1].toFixed(2)} `;
   for (let i=1;i<points.length;i++) pathstring+=`L${points[i][0].toFixed(2)},${points[i][1].toFixed(2)}`;
 
-  var p=document.createElementNS("http://www.w3.org/2000/svg", "path");
+  var p=document.createElementNS(svgNS, "path");
   p.setAttributeNS(null, "style", "stroke-width: 2px; fill: none; stroke: " + (config.Inverted?"white":"black"))
   p.setAttributeNS(null, "d", pathstring) 
   svg.appendChild(p)
 }
 
 function addCircle(d){
-  var p=document.createElementNS("http://www.w3.org/2000/svg", "circle");
-  //p.setAttributeNS(null, "style", "stroke-width: 1px; fill: none; stroke: " + (config.Inverted?"white":"black"))
+  var p=document.createElementNS(svgNS, "circle");
   p.setAttributeNS(null, "style", "fill: " + (config.Inverted?"white":"black"))
   p.setAttributeNS(null, "cx", d[0]) 
   p.setAttributeNS(null, "cy", d[1]) 
@@ -154,15 +161,13 @@ function addCircle(d){
 }
 
 function download(){
-  const svgString = '<?xml version="1.0" standalone="no"?>'
-    + '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">'
+  const svgString = '<?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">'
     + (new XMLSerializer()).serializeToString(svg);
   const blob = new Blob([svgString], {type: 'image/svg+xml;charset=utf-8'});
 
-  const svgUrl = URL.createObjectURL(blob);
   const downloadLink = document.createElement("a");
-  downloadLink.href = svgUrl;
-  downloadLink.download = "squiggleCam_" + Date.now() + ".svg";
+  downloadLink.href = URL.createObjectURL(blob);
+  downloadLink.download = window.algo.replace('.js','_') + Date.now() + ".svg";
   document.body.appendChild(downloadLink);
   downloadLink.click();
   document.body.removeChild(downloadLink);
