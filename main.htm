@@ -117,8 +117,12 @@ function loadWorker(src){
   
     // message, e.g. progress bar
     } else if (type == 'msg') {
+      console.log(data) 
   
-  
+    }else if (type == 'dbg'){
+      window.data = data;
+      console.log(data)
+
     // vector data result
     } else {
 
@@ -147,7 +151,7 @@ function addPath(points){
   for (let i=1;i<points.length;i++) pathstring+=`L${points[i][0].toFixed(2)},${points[i][1].toFixed(2)}`;
 
   var p=document.createElementNS(svgNS, "path");
-  p.setAttributeNS(null, "style", "stroke-width: 2px; fill: none; stroke: " + (config.Inverted?"white":"black"))
+  p.setAttributeNS(null, "style", "stroke-width: 1px; fill: none; stroke: " + (config.Inverted?"white":"black"))
   p.setAttributeNS(null, "d", pathstring) 
   svg.appendChild(p)
 }
