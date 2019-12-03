@@ -136,7 +136,7 @@ function loadWorker(src){
       if (type == 'points') {
         // either a list of points, or a list of lists of points
         if (typeof data[0][0] === "number") data = [data]
-        data.forEach(path => addPath(path))
+        data.forEach(addPath)
       } else if (type == 'circles') {
         data.forEach(addCircle)
       }
@@ -151,7 +151,7 @@ function addPath(points){
   for (let i=1;i<points.length;i++) pathstring+=`L${points[i][0].toFixed(2)},${points[i][1].toFixed(2)}`;
 
   var p=document.createElementNS(svgNS, "path");
-  p.setAttributeNS(null, "style", "stroke-width: 1px; fill: none; stroke: " + (config.Inverted?"white":"black"))
+  p.setAttributeNS(null, "style", "stroke-width: 2px; fill: none; stroke: " + (config.Inverted?"white":"black"))
   p.setAttributeNS(null, "d", pathstring) 
   svg.appendChild(p)
 }

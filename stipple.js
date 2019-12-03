@@ -6,7 +6,7 @@ postMessage(['sliders', [
   {label: 'Contrast', value: 0, min: -100, max: 100},
   {label: 'Min brightness', value: 0, min: 0, max: 255},
   {label: 'Max brightness', value: 255, min: 0, max: 255},
-  {label: 'Max Stipples', value: 1000, min: 500, max: 5000},
+  {label: 'Max Stipples', value: 1000, min: 500, max: 10000},
   {label: 'Size', value: 32, min: 8, max: 64},
 ]]);
 
@@ -17,102 +17,111 @@ onmessage = function(e) {
   const getPixel = pixelProcessor(config, pixData)
  
   const maxParticles = config['Max Stipples'] 
+  const border = 6;
   let particles = Array(maxParticles), i=0;
+  let circles = Array(maxParticles)
   
   while ( i < maxParticles  ) {
-    x=Math.random()*config.width; //borders...
-    y=Math.random()*config.height;
+    x=Math.random()*(config.width-border*2)+border;
+    y=Math.random()*(config.height-border*2)+border;
     
     z = getPixel( x , y )
     if (Math.random()*255 <= z) 
       particles[i++]={x,y}
   }
 
-  postMessage(['msg', "Calculating voronoi"]);
-
   var voronoi = new Voronoi();
-  var bbox = {xl:0, xr:config.width, yt:0, yb:config.height}
-  var diagram = voronoi.compute(particles, bbox)
+  var diagram=null
+  var bbox = {xl:border, xr:config.width-border, yt:border, yb:config.height-border}
 
-  postMessage(['dbg', diagram]);
+  for (let k=0;k<200;k++){
 
-  postMessage(['msg', "Calculating weighted centroids"]);
-
-  let edgePixels = []
-
-  let temp = []
-  for (let h of diagram.cells[0].halfedges) {
-//    temp.push([[Math.round(h.edge.va.x),Math.round(h.edge.va.y)],[Math.round(h.edge.vb.x),Math.round(h.edge.vb.y)]])
-  }
+    postMessage(['msg', "Calculating voronoi"]);
   
+    //let totalDeviation = 0;
 
-
-  var halfedges = diagram.cells[0].halfedges;
-
-  var v = halfedges[0].getStartpoint()
-  let sx = v.x
-  let sy = v.y;
-  let dx,ex,ey;
-
-//  edgePixels.push([Math.round(sx),Math.round(sy)])
-
-  // Walk around the perimeter of the cell marking the boundary pixels
-  // No need for full bressenham since we'll be scanning across anyway
-  for (i of halfedges){
-    v = i.getEndpoint()
-    ex = v.x
-    ey = v.y
-    dx = (ex-sx) / (ey-sy)
-    if (sy == sx) {
-      edgePixels.push([Math.round(sx),Math.round(sy)])
-    } else if (sy<ey) {
-      while (sy < ey) {
-        edgePixels.push([Math.round(sx),Math.round(sy)])
-        sy++
-        sx += dx
+    voronoi.recycle(diagram)
+    diagram = voronoi.compute(particles, bbox)
+  
+    for (let c = 0; c< maxParticles; c++) {
+  
+      let edgePixels = []
+      let halfedges = diagram.cells[c].halfedges;
+      if (halfedges.length==0) continue
+    
+      let v = halfedges[0].getStartpoint()
+      let sx = v.x
+      let sy = v.y;
+      let dx,ex,ey;
+    
+      // Walk around the perimeter of the cell marking the boundary pixels
+      // No need for full bressenham since we'll be scanning across anyway
+      for (i of halfedges){
+        v = i.getEndpoint()
+        ex = v.x
+        ey = v.y
+        dx = (ex-sx) / (ey-sy)
+        if (sy == sx) {
+          edgePixels.push([Math.round(sx),Math.round(sy)])
+        } else if (sy<ey) {
+          while (sy < ey) {
+            edgePixels.push([Math.round(sx),Math.round(sy)])
+            sy++
+            sx += dx
+          }
+        } else {   
+          while (sy > ey) {
+            edgePixels.push([Math.round(sx),Math.round(sy)])
+            sy--
+            sx -= dx
+          }
+        }
+        sy=ey
+        sx=ex
       }
-    } else {   
-      while (sy > ey) {
-        edgePixels.push([Math.round(sx),Math.round(sy)])
-        sy--
-        sx -= dx
+    
+    
+      // create lookup addressed by Y coord
+      let byY ={}
+      for (i of edgePixels){
+        if (byY[i[1]]) byY[i[1]].push(i[0])
+        else byY[i[1]] = [i[0]]
       }
+      
+      // scanlines
+      let xSum=0, ySum=0, dSum = 0;
+      for (let ny in byY) {
+        let y = Number(ny)
+        for (let x = Math.min(...byY[ny]); x<= Math.max(...byY[ny]); x++){
+          let z = 0.001 + getPixel(x,y)
+          xSum += z*x
+          ySum += z*y
+          dSum += z
+        }
+      }
+      if (dSum>0) {
+        xSum /= dSum
+        ySum /= dSum
+      }
+
+//      totalDeviation += Math.sqrt((particles[c].x-xSum)*(particles[c].x-xSum) + (particles[c].y-ySum)*(particles[c].y-ySum))
+
+      particles[c].x = Math.max(border,Math.min(xSum, config.width-border))
+      particles[c].y = Math.max(border,Math.min(ySum, config.height-border))
     }
-    sy=ey
-    sx=ex
+    
+  
+    for (let p in particles){
+      circles[p]=[particles[p].x,particles[p].y,  getPixel(particles[p].x,particles[p].y)/64 ]
+    }
+    postMessage(['circles', circles])
+
+//    postMessage(['msg', "Total deviation"+ totalDeviation/maxParticles]);
+
   }
 
-temp.push(edgePixels)
-
-// create lookup addressed by Y coord
-var byY ={}
-for (i of edgePixels){
-  if (byY[i[1]]) byY[i[1]].push(i[0])
-  else byY[i[1]] = [i[0]]
-}
-console.log('byY:   '+JSON.stringify(byY))
-
-var newlist = []
-// scanlines
-for (let y in byY) {
-  for (i = Math.min(...byY[y]); i<= Math.max(...byY[y]); i++){
-    newlist.push([ i, Number(y) ])
-  }
-
-}
 
 
-console.log(newlist)
-//  console.log(diagram.cells[0].halfedges.length)
-  postMessage(['points',newlist])
-
-//  diagram.cells[0].halfedges[0].edge.va
-
-  // go through each edge, incrementing y and pushing rounded x
-  // 
-
-
-//  postMessage(['circles', particles]);
 }
 
 
