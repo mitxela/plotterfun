@@ -6,6 +6,7 @@
 video{max-width:100%;transform:scaleX(-1)}
 svg{position:fixed; left:320px; top:10px;}
 form{padding:5px; line-height:2em}
+#msgbox{position:fixed; left: 320px; bottom:20px}
 </style>
 
 <div id=sidebar>
@@ -34,6 +35,8 @@ Algorithm:
 </div>
 
 <svg></svg>
+
+<div id=msgbox></div>
 
 <script>
 svg=document.querySelector('svg');
@@ -117,9 +120,8 @@ function loadWorker(src){
   
     // message, e.g. progress bar
     } else if (type == 'msg') {
-      console.log(data) 
-  
-    }else if (type == 'dbg'){
+      msgbox.innerHTML = data;
+    } else if (type == 'dbg'){
       window.data = data;
       console.log(data)
 

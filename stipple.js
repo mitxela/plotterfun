@@ -34,9 +34,9 @@ onmessage = function(e) {
   var diagram=null
   var bbox = {xl:border, xr:config.width-border, yt:border, yb:config.height-border}
 
-  for (let k=0;k<200;k++){
+  for (let k=0;k<3;k++){
 
-    postMessage(['msg', "Calculating voronoi"]);
+    postMessage(['msg', "Iteration "+k]);
   
     //let totalDeviation = 0;
 
@@ -122,6 +122,75 @@ onmessage = function(e) {
 
 
 
+  postMessage(['msg', "Route optimization"]);
+
+  function distance(p1,p2){ 
+      let dx = p1.x-p2.x
+      let dy = p1.y-p2.y
+      return dx*dx+dy*dy
+  }
+  function swapParticles(p1,p2){ 
+    let temp = particles[p1]
+    particles[p1]=particles[p2]
+    particles[p2]=temp
+  }
+
+
+  for (i=1; i< maxParticles; i++){
+    let closest = 0, mindist = 1e99
+    for (let j=i; j<maxParticles; j++) {
+      let d = distance(particles[j], particles[i-1])
+      if (d < mindist) {
+        closest = j
+	mindist=d
+      }
+    }
+    swapParticles(i,closest)
+  }
+
+
+  for (let p in particles) circles[p]=[particles[p].x,particles[p].y]
+  postMessage(['points', circles])
+
+
+  // 2-opt optimization 
+  let numSwaps=1
+  while (numSwaps>0) {
+    numSwaps=0
+    
+    for (i=0;i<1e7;i++) {
+      let iA = Math.floor(Math.random()*(maxParticles-1))
+      let iB = Math.floor(Math.random()*(maxParticles-1))
+      if (Math.abs(iA-iB)<2) continue
+      if (iB<iA) {
+        let temp = iB
+        iB=iA
+        iA = temp
+      }
+  
+      let dA = distance( particles[iA], particles[iA+1] ) 
+             + distance( particles[iB], particles[iB+1] )
+      let dB = distance( particles[iA], particles[iB]) 
+             + distance( particles[iA+1], particles[iB+1])
+  
+      if (dB<dA) {
+        // reverse tour between a1 and b0
+        let high = iB, low = iA+1
+        while (high>low) {
+          swapParticles(low, high)
+  	high--
+  	low++
+        }
+        numSwaps++
+      }
+    }
+    postMessage(['msg', `Optimizing... [${numSwaps} swaps ]`]);
+  
+    for (let p in particles) circles[p]=[particles[p].x,particles[p].y]
+    postMessage(['points', circles])
+
+  }
+  postMessage(['msg', "Done"]);
 }
 
 
