@@ -38,6 +38,7 @@ Algorithm:
 
 <div id=msgbox></div>
 
+<script src=external/stackblur.min.js></script>
 <script>
 svg=document.querySelector('svg');
 video=document.querySelector('video');
@@ -63,6 +64,7 @@ function snapshot(){
   // config width height should come from sliders maybe?
   [canvas.width, canvas.height] = [video.videoWidth, video.videoHeight];
   ctx.drawImage(video, 0, 0)
+  StackBlur.canvasRGB(canvas, 0,0,canvas.width,canvas.height,1) // small amount of blur to eliminate noise
   process()
 }
 
@@ -77,6 +79,7 @@ function process(){
 function loadWorker(src){
   if (window.myWorker) myWorker.terminate()
   window.myWorker = new Worker(src);
+  msgbox.innerHTML = "";
   myWorker.onmessage = function(msg) {
     let [type, data] = msg.data
 
@@ -102,11 +105,11 @@ function loadWorker(src){
         s.value = n.value = config[slider.label] //.assign already set value, but value has to be set after min/max are set
 
         if (slider.type && slider.type=='checkbox') {
-          s.oninput=e=>{config[slider.label] = s.checked; process()}
+          s.oninput=e=>{config[slider.label] = s.checked; if (!slider.noRestart) process()}
           l.append(s)  
         } else {
-          s.oninput=e=>{config[slider.label] = Number( n.value = s.value ); process()}
-          n.oninput=e=>{config[slider.label] = Number( s.value = n.value ); process()}
+          s.oninput=e=>{config[slider.label] = Number( n.value = s.value ); if (!slider.noRestart) process()}
+          n.oninput=e=>{config[slider.label] = Number( s.value = n.value ); if (!slider.noRestart) process()}
           p.append(s);
           p.append(n)
         }

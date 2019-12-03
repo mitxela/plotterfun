@@ -1,4 +1,4 @@
-importScripts('helpers.js', 'rhill-voronoi-core.min.js')
+importScripts('helpers.js', 'external/rhill-voronoi-core.min.js')
 
 postMessage(['sliders', [
   {label: 'Inverted', type:'checkbox'},
@@ -7,15 +7,28 @@ postMessage(['sliders', [
   {label: 'Min brightness', value: 0, min: 0, max: 255},
   {label: 'Max brightness', value: 255, min: 0, max: 255},
   {label: 'Max Stipples', value: 1000, min: 500, max: 10000},
-  {label: 'Size', value: 32, min: 8, max: 64},
+  {label: 'Max Iterations', value: 30, min:2, max:200},
+  {label: 'Min dot size', value: 2, min: 0.5, max: 8, noRestart:true},
+  {label: 'Dot size range', value: 4, min: 0, max: 20, noRestart:true},
+  {label: 'TSP Art', type:'checkbox', noRestart:true},
 ]]);
 
 
 
 onmessage = function(e) {
   const [ config, pixData ] = e.data;
-  const getPixel = pixelProcessor(config, pixData)
- 
+  const getPixelSlow = pixelProcessor(config, pixData)
+
+  const pixelCache =[]
+  for (let x=0;x<config.width;x++) {
+    pixelCache[x]=[]
+    for (let y=0;y<config.height;y++)
+      pixelCache[x][y] = getPixelSlow(x,y)
+  }
+  function getPixel(x,y){
+    return pixelCache[Math.floor(x)][Math.floor(y)]
+  }
+
   const maxParticles = config['Max Stipples'] 
   const border = 6;
   let particles = Array(maxParticles), i=0;
@@ -34,7 +47,7 @@ onmessage = function(e) {
   var diagram=null
   var bbox = {xl:border, xr:config.width-border, yt:border, yb:config.height-border}
 
-  for (let k=0;k<3;k++){
+  for (let k=0;k<config['Max Iterations'];k++){
 
     postMessage(['msg', "Iteration "+k]);
   
@@ -184,12 +197,19 @@ onmessage = function(e) {
         numSwaps++
       }
     }
-    postMessage(['msg', `Optimizing... [${numSwaps} swaps ]`]);
+    postMessage(['msg', `Optimizing route... [${numSwaps} swaps ]`]);
   
     for (let p in particles) circles[p]=[particles[p].x,particles[p].y]
     postMessage(['points', circles])
 
   }
+
+
+    for (let p in particles){
+      circles[p]=[particles[p].x,particles[p].y,  getPixel(particles[p].x,particles[p].y)/64 ]
+    }
+    postMessage(['circles', circles])
+
   postMessage(['msg', "Done"]);
 }
 
