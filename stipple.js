@@ -125,7 +125,7 @@ onmessage = function(e) {
     
   
     for (let p in particles){
-      circles[p]=[particles[p].x,particles[p].y,  getPixel(particles[p].x,particles[p].y)/64 ]
+      circles[p]=[particles[p].x,particles[p].y,  getPixel(particles[p].x,particles[p].y) ]
     }
     postMessage(['circles', circles])
 
@@ -206,7 +206,7 @@ onmessage = function(e) {
 
 
     for (let p in particles){
-      circles[p]=[particles[p].x,particles[p].y,  getPixel(particles[p].x,particles[p].y)/64 ]
+      circles[p]=[particles[p].x,particles[p].y,  getPixel(particles[p].x,particles[p].y) ]
     }
     postMessage(['circles', circles])
 

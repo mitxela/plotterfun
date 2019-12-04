@@ -46,6 +46,7 @@ canvas=document.createElement("canvas")
 ctx=canvas.getContext("2d")
 
 config = {};
+circles = [];
 
 // TODO
 // normal image selection
@@ -74,7 +75,12 @@ function process(){
   loadWorker(window.algo)
   myWorker.postMessage([ window.config, ctx.getImageData(0,0,config.width,config.height) ]);
 }
-
+function ctrlChange(slider){
+  if (!slider.noRestart) 
+    process()
+  else
+    redraw()
+}
 
 function loadWorker(src){
   if (window.myWorker) myWorker.terminate()
@@ -105,11 +111,11 @@ function loadWorker(src){
         s.value = n.value = config[slider.label] //.assign already set value, but value has to be set after min/max are set
 
         if (slider.type && slider.type=='checkbox') {
-          s.oninput=e=>{config[slider.label] = s.checked; if (!slider.noRestart) process()}
+          s.oninput=e=>{config[slider.label] = s.checked; ctrlChange(slider)}
           l.append(s)  
         } else {
-          s.oninput=e=>{config[slider.label] = Number( n.value = s.value ); if (!slider.noRestart) process()}
-          n.oninput=e=>{config[slider.label] = Number( s.value = n.value ); if (!slider.noRestart) process()}
+          s.oninput=e=>{config[slider.label] = Number( n.value = s.value ); ctrlChange(slider)}
+          n.oninput=e=>{config[slider.label] = Number( s.value = n.value ); ctrlChange(slider)}
           p.append(s);
           p.append(n)
         }
@@ -130,19 +136,14 @@ function loadWorker(src){
 
     // vector data result
     } else {
-
-      svg.style.background=config.Inverted?"black":"white";
-      // erase existing contents
-      let c; while (c = svg.firstChild) svg.removeChild(c)
-      svg.setAttribute("width",config.width)
-      svg.setAttribute("height",config.height)
-      svg.setAttribute("viewbox", `0 0 ${config.width} ${config.height}`)
-
+      delete window.circles
+      resetSVG()
       if (type == 'points') {
         // either a list of points, or a list of lists of points
         if (typeof data[0][0] === "number") data = [data]
         data.forEach(addPath)
       } else if (type == 'circles') {
+        window.circles=data;
         data.forEach(addCircle)
       }
 
@@ -151,6 +152,14 @@ function loadWorker(src){
 }
 
 const svgNS = "http://www.w3.org/2000/svg"
+function resetSVG(){
+  // erase existing contents
+  let c; while (c = svg.firstChild) svg.removeChild(c)
+  svg.setAttribute("width",config.width)
+  svg.setAttribute("height",config.height)
+  svg.setAttribute("viewbox", `0 0 ${config.width} ${config.height}`)
+  svg.style.background=config.Inverted?"black":"white";
+}
 function addPath(points){
   var pathstring = `M${points[0][0].toFixed(2)},${points[0][1].toFixed(2)} `;
   for (let i=1;i<points.length;i++) pathstring+=`L${points[i][0].toFixed(2)},${points[i][1].toFixed(2)}`;
@@ -162,12 +171,19 @@ function addPath(points){
 }
 
 function addCircle(d){
+  let minsize = config['Min dot size'], scale = config['Dot size range']/255;
   var p=document.createElementNS(svgNS, "circle");
   p.setAttributeNS(null, "style", "fill: " + (config.Inverted?"white":"black"))
   p.setAttributeNS(null, "cx", d[0]) 
   p.setAttributeNS(null, "cy", d[1]) 
-  p.setAttributeNS(null, "r",  d[2]) 
+  p.setAttributeNS(null, "r",  d[2]*scale + minsize) 
   svg.appendChild(p)
+}
+function redraw(){
+  if (window.circles) {
+    resetSVG()
+    circles.forEach(addCircle)
+  }
 }
 
 function download(){
