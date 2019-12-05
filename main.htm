@@ -47,7 +47,6 @@ canvas=document.createElement("canvas")
 ctx=canvas.getContext("2d")
 
 config = {};
-circles = [];
 
 [
   {label: 'Inverted', type:'checkbox'},
@@ -63,6 +62,11 @@ circles = [];
 // upload to server option - pipe to hpgl python script or smoething
 
 
+if (!navigator.mediaDevices) {
+  video = new Image()
+  video.src='snapshot.jpg'
+  video.onload=()=>{video.videoWidth=video.width;video.videoHeight=video.height}
+} else 
 navigator.mediaDevices.getUserMedia({video: true}).then(function(v) {
   video.srcObject = v;
 //  video.onplay=function(){process()}
@@ -88,7 +92,7 @@ function ctrlChange(control){
   if (!control.noRestart) 
     process()
   else
-    redraw()
+    myWorker.postMessage([ window.config ]);
 }
 function addController(control, form){
   if (!control.type) control.type = "range"
@@ -144,14 +148,12 @@ function loadWorker(src){
 
     // vector data result
     } else {
-      delete window.circles
       resetSVG()
       if (type == 'points') {
         // either a list of points, or a list of lists of points
         if (typeof data[0][0] === "number") data = [data]
         data.forEach(addPath)
       } else if (type == 'circles') {
-        window.circles=data;
         data.forEach(addCircle)
       }
 
@@ -179,19 +181,12 @@ function addPath(points){
 }
 
 function addCircle(d){
-  let minsize = config['Min dot size'], scale = config['Dot size range']/255;
   var p=document.createElementNS(svgNS, "circle");
   p.setAttributeNS(null, "style", "fill: " + (config.Inverted?"white":"black"))
   p.setAttributeNS(null, "cx", d[0]) 
   p.setAttributeNS(null, "cy", d[1]) 
-  p.setAttributeNS(null, "r",  d[2]*scale + minsize) 
+  p.setAttributeNS(null, "r",  d[2]) 
   svg.appendChild(p)
-}
-function redraw(){
-  if (window.circles) {
-    resetSVG()
-    circles.forEach(addCircle)
-  }
 }
 
 function download(){
