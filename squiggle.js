@@ -1,11 +1,6 @@
 importScripts('helpers.js')
 
 postMessage(['sliders', [
-  {label: 'Inverted', type:'checkbox'},
-  {label: 'Brightness', value: 0, min: -100, max: 100},
-  {label: 'Contrast', value: 0, min: -100, max: 100},
-  {label: 'Min brightness', value: 0, min: 0, max: 255},
-  {label: 'Max brightness', value: 255, min: 0, max: 255},
   {label: 'Frequency', value: 150, min: 5, max: 256},
   {label: 'Line Count', value: 50, min: 10, max: 200},
   {label: 'Amplitude', value: 1, min: 0.1, max: 5, step: 0.1},

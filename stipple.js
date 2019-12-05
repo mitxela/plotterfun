@@ -1,15 +1,10 @@
 importScripts('helpers.js', 'external/rhill-voronoi-core.min.js')
 
 postMessage(['sliders', [
-  {label: 'Inverted', type:'checkbox'},
-  {label: 'Brightness', value: 0, min: -100, max: 100},
-  {label: 'Contrast', value: 0, min: -100, max: 100},
-  {label: 'Min brightness', value: 0, min: 0, max: 255},
-  {label: 'Max brightness', value: 255, min: 0, max: 255},
   {label: 'Max Stipples', value: 1000, min: 500, max: 10000},
   {label: 'Max Iterations', value: 30, min:2, max:200},
-  {label: 'Min dot size', value: 2, min: 0.5, max: 8, noRestart:true},
-  {label: 'Dot size range', value: 4, min: 0, max: 20, noRestart:true},
+  {label: 'Min dot size', value: 2, min: 0.5, max: 8, step:0.1, noRestart:true},
+  {label: 'Dot size range', value: 4, min: 0, max: 20, step:0.1, noRestart:true},
   {label: 'TSP Art', type:'checkbox', noRestart:true},
 ]]);
 

@@ -1,7 +1,7 @@
 <!doctype html><meta charset=utf-8>
 <style>
 *{font-family:sans-serif}
-#controls input[type=text] {width:30px}
+input~input[type=text] {width:40px}
 #sidebar {width:300px;background:#ddf}
 video{max-width:100%;transform:scaleX(-1)}
 svg{position:fixed; left:320px; top:10px;}
@@ -18,7 +18,7 @@ form{padding:5px; line-height:2em}
 <button onclick='snapshot()'>Use image</button>
 </div>
 
-
+<form>
 Algorithm: 
 <select id=algorithm onchange='loadWorker(this.value)'>
 <option value=squiggle.js>Squiggle</option>
@@ -28,8 +28,9 @@ Algorithm:
 <option value=sawtooth.js>Sawtooth</option>
 <option value=stipple.js>Stippletest</option>
 </select>
-
-<form id=controls></form>
+</form>
+<form id=imageParams></form>
+<form id=algoParams></form>
 
 <button onclick=download()>Download SVG</button>
 </div>
@@ -47,6 +48,14 @@ ctx=canvas.getContext("2d")
 
 config = {};
 circles = [];
+
+[
+  {label: 'Inverted', type:'checkbox'},
+  {label: 'Brightness', value: 0, min: -100, max: 100},
+  {label: 'Contrast', value: 0, min: -100, max: 100},
+  {label: 'Min brightness', value: 0, min: 0, max: 255},
+  {label: 'Max brightness', value: 255, min: 0, max: 255},
+].forEach(c => addController(c, imageParams))
 
 // TODO
 // normal image selection
@@ -75,11 +84,41 @@ function process(){
   loadWorker(window.algo)
   myWorker.postMessage([ window.config, ctx.getImageData(0,0,config.width,config.height) ]);
 }
-function ctrlChange(slider){
-  if (!slider.noRestart) 
+function ctrlChange(control){
+  if (!control.noRestart) 
     process()
   else
     redraw()
+}
+function addController(control, form){
+  if (!control.type) control.type = "range"
+  let s = document.createElement("input")
+  Object.assign(s, control)
+  let l = document.createElement('label')
+  let p = document.createElement('div')
+
+  // Don't reset values when reloading controls with same name
+  if (config[control.label]) control.value = config[control.label];
+  else config[control.label] = control.value;
+
+  if (control.type=='checkbox') {
+    s.oninput=e=>{config[control.label] = s.checked; ctrlChange(control)}
+    config[control.label] = s.checked
+    l.append(s)  
+  } else {
+    let n = document.createElement('input')
+    n.type="text" // type=number does not allow fractions
+    n.pattern="\-?[0-9]+\.?[0-9]*"
+    s.oninput=e=>{config[control.label] = Number( n.value = s.value ); ctrlChange(control)}
+    n.oninput=e=>{config[control.label] = Number( s.value = n.value ); ctrlChange(control)}
+    s.value = n.value = config[control.label] //.assign already set value, but value has to be set after min/max are set
+    p.append(s);
+    p.append(n)
+  }
+  l.append(control.label)
+  l.append(p)
+  form.append(l)
+
 }
 
 function loadWorker(src){
@@ -92,41 +131,10 @@ function loadWorker(src){
     // setup, declare parameters
     if (type == 'sliders') {
       if (src==window.algo) return;
-      controls.innerHTML="";
-  
-      data.forEach(slider=>{
-        let s = document.createElement("input")
-        s.type="range"
-        Object.assign(s, slider)
-        let n = document.createElement('input')
-        n.type="text" // type=number does not allow fractions
-        n.pattern="\-?[0-9]+\.?[0-9]*"
-        let l = document.createElement('label')
-        let p = document.createElement('div')
-
-        // Don't reset values when reloading controls with same name
-        if (config[slider.label]) slider.value = config[slider.label];
-        else config[slider.label] = slider.value;
-
-        s.value = n.value = config[slider.label] //.assign already set value, but value has to be set after min/max are set
-
-        if (slider.type && slider.type=='checkbox') {
-          s.oninput=e=>{config[slider.label] = s.checked; ctrlChange(slider)}
-          l.append(s)  
-        } else {
-          s.oninput=e=>{config[slider.label] = Number( n.value = s.value ); ctrlChange(slider)}
-          n.oninput=e=>{config[slider.label] = Number( s.value = n.value ); ctrlChange(slider)}
-          p.append(s);
-          p.append(n)
-        }
-        l.append(slider.label)
-        l.append(p)
-        controls.append(l)
-
-      })
-    window.algo=src
-    process()
-  
+      window.algo=src
+      algoParams.innerHTML="";
+      data.forEach(c=>addController( c, algoParams ))
+      process()
     // message, e.g. progress bar
     } else if (type == 'msg') {
       msgbox.innerHTML = data;
