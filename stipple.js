@@ -1,12 +1,18 @@
 importScripts('helpers.js', 'external/rhill-voronoi-core.min.js')
 
 postMessage(['sliders', [
-  {label: 'Max Stipples', value: 1000, min: 500, max: 10000},
+  {label: 'Max Stipples', value: 2000, min: 500, max: 10000},
   {label: 'Max Iterations', value: 30, min:2, max:200},
   {label: 'Min dot size', value: 2, min: 0.5, max: 8, step:0.1, noRestart:true},
   {label: 'Dot size range', value: 4, min: 0, max: 20, step:0.1, noRestart:true},
   {label: 'TSP Art', type:'checkbox', noRestart:true},
 ]]);
+
+// TODO
+// noRestart on max iterations change?
+// stipple shape - empty, filled, spiral, hexagon?
+// top left two stipples always unstable
+
 
 let particles, config, pixData, pixelCache =[];
 onmessage = function(e) {
@@ -15,7 +21,7 @@ onmessage = function(e) {
     render()
   } else {
     Object.assign(config, e.data[0])
-    redraw()
+    redraw( config['TSP Art'] )
   }
 }
 
@@ -27,19 +33,16 @@ function getPixel(x,y){
   return pixelCache[Math.floor(x)][Math.floor(y)]
 }
 function redraw(tsp){
-  let circles = Array(particles.length)
-  if (tsp || config['TSP Art']) {
-    for (let p in particles) circles[p]=[particles[p].x,particles[p].y]
-    postMessage(['points', circles])
+  if (tsp) {
+    postMessage(['points', particles])
   } else {
     let minsize = config['Min dot size'], scale = config['Dot size range']/255;
     for (let p in particles){
-      circles[p]=[particles[p].x,particles[p].y,  getPixel(particles[p].x,particles[p].y)*scale + minsize ]
+      particles[p].r=getPixel(particles[p].x,particles[p].y)*scale + minsize 
     }
-    postMessage(['circles', circles])
+    postMessage(['circles', particles])
   }
 }
-
 
 async function render() {
 
@@ -67,7 +70,6 @@ async function render() {
   var voronoi = new Voronoi();
   var diagram=null
   var bbox = {xl:border, xr:config.width-border, yt:border, yb:config.height-border}
-
 
   for (let k=0;k<config['Max Iterations'];k++){
     postMessage(['msg', "Iteration "+k]);
@@ -209,7 +211,7 @@ async function render() {
     postMessage(['msg', `Optimizing route... [${numSwaps.toFixed(2)}]`]);
   }
 
-  redraw(0)
+  redraw(config['TSP Art'])
   postMessage(['msg', "Done"]);
 }
 

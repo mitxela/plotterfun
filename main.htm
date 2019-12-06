@@ -64,7 +64,7 @@ config = {};
 
 if (!navigator.mediaDevices) {
   video = new Image()
-  video.src='snapshot.jpg'
+  video.src='snapshot2.jpg'
   video.onload=()=>{video.videoWidth=video.width;video.videoHeight=video.height}
 } else 
 navigator.mediaDevices.getUserMedia({video: true}).then(function(v) {
@@ -89,6 +89,7 @@ function process(){
   myWorker.postMessage([ window.config, ctx.getImageData(0,0,config.width,config.height) ]);
 }
 function ctrlChange(control){
+  if (!imageset) return;
   if (!control.noRestart) 
     process()
   else
@@ -151,10 +152,14 @@ function loadWorker(src){
       resetSVG()
       if (type == 'points') {
         // either a list of points, or a list of lists of points
-        if (typeof data[0][0] === "number") data = [data]
-        data.forEach(addPath)
+        if (typeof data[0][0] !== "object") data = [data]
+
+        if (data[0][0].x) data.forEach(addPathNamed)
+	else data.forEach(addPathArray)
+
       } else if (type == 'circles') {
-        data.forEach(addCircle)
+        if (data[0].x) data.forEach(addCircleNamed)
+	else data.forEach(addCircleArray)
       }
 
     } 
@@ -170,17 +175,24 @@ function resetSVG(){
   svg.setAttribute("viewbox", `0 0 ${config.width} ${config.height}`)
   svg.style.background=config.Inverted?"black":"white";
 }
-function addPath(points){
+function addPathNamed(points){
+  var pathstring = `M${points[0].x.toFixed(2)},${points[0].y.toFixed(2)} `;
+  for (let i=1;i<points.length;i++) pathstring+=`L${points[i].x.toFixed(2)},${points[i].y.toFixed(2)}`;
+  addPath(pathstring)
+}
+function addPathArray(points){
   var pathstring = `M${points[0][0].toFixed(2)},${points[0][1].toFixed(2)} `;
   for (let i=1;i<points.length;i++) pathstring+=`L${points[i][0].toFixed(2)},${points[i][1].toFixed(2)}`;
-
+  addPath(pathstring)
+}
+function addPath(pathstring){
   var p=document.createElementNS(svgNS, "path");
   p.setAttributeNS(null, "style", "stroke-width: 2px; fill: none; stroke: " + (config.Inverted?"white":"black"))
   p.setAttributeNS(null, "d", pathstring) 
   svg.appendChild(p)
 }
-
-function addCircle(d){
+function addCircleNamed(d) { addCircleArray([d.x,d.y,d.r])}
+function addCircleArray(d){
   var p=document.createElementNS(svgNS, "circle");
   p.setAttributeNS(null, "style", "fill: " + (config.Inverted?"white":"black"))
   p.setAttributeNS(null, "cx", d[0]) 
