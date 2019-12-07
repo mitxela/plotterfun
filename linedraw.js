@@ -5,10 +5,9 @@ postMessage(['sliders', [
   {label: 'Contour detail', value: 2, min: 1, max: 3},
   {label: 'Hatching', type:'checkbox', noRestart:true},
   {label: 'Hatch scale', value: 8, min: 1, max: 24},
-  {label: 'thresh', value: 128, min: 1, max: 255},
 ]]);
 
-let config, pixData=[], pixelCache=[], getPixel, outlines=[];
+let config, pixData=[], getPixel, outlines=[];
 onmessage = function(e) {
   if (pixData.length == 0) {
     [ config, pixData ] = e.data;
@@ -61,6 +60,7 @@ function autocontrast(cutoff){
 
   let scale = (255/(high-low)) || 1
 
+  const pixelCache=[]
   for (let x=0;x<config.width;x++) {
     pixelCache[x]=[]
     for (let y=0;y<config.height;y++) {
@@ -68,9 +68,9 @@ function autocontrast(cutoff){
     }
   }
   return (x,y)=>{
-    if (x>=0 && y>=0 && x<config.width &&y<config.height)
-      return pixelCache[Math.floor(x)][Math.floor(y)]
-    else return 0
+    return (x>=0 && y>=0 && x<config.width &&y<config.height)
+      ? pixelCache[Math.floor(x)][Math.floor(y)]
+      : 0
   }
 }
 
@@ -78,65 +78,110 @@ function autocontrast(cutoff){
 
 function SobelFilter() {
 
-  var kernelX = [
-    [-1,0,1],
-    [-2,0,2],
-    [-1,0,1]
-  ];
-
-  var kernelY = [
-    [-1,-2,-1],
-    [0,0,0],
-    [1,2,1]
-  ];
-
-  var sobelData = [];
-//  var pixelAt = (x,y)=> getPixel(x,y)||0;
-//  var pixelAt = (x,y)=> (pixData.data[(x+y*config.width)*4] + pixData.data[(x+y*config.width)*4+1] + pixData.data[(x+y*config.width)*4+2])/3
-//  var pixelAt = (x,y)=> pixData.data[(x+y*config.width)*4+2]
-
-  var pixelAt = autocontrast(0.1)
+  const sobelData = Array(config.width*config.height)
+  const getPixel = autocontrast(0.1)
+  let i = 0;
 
   for (let y = 0; y < config.height; y++) {
     for (let x = 0; x < config.width; x++) {
-      var pixelX = (
-          (kernelX[0][0] * pixelAt(x - 1, y - 1)) +
-       //   (kernelX[0][1] * pixelAt(x, y - 1)) +
-          (kernelX[0][2] * pixelAt(x + 1, y - 1)) +
-          (kernelX[1][0] * pixelAt(x - 1, y)) +
-       //   (kernelX[1][1] * pixelAt(x, y)) +
-          (kernelX[1][2] * pixelAt(x + 1, y)) +
-          (kernelX[2][0] * pixelAt(x - 1, y + 1)) +
-       //   (kernelX[2][1] * pixelAt(x, y + 1)) +
-          (kernelX[2][2] * pixelAt(x + 1, y + 1))
-      );
+      let px =
+          -1 * getPixel(x - 1, y - 1) +
+           1 * getPixel(x + 1, y - 1) +
+          -2 * getPixel(x - 1, y    ) +
+           2 * getPixel(x + 1, y    ) +
+          -1 * getPixel(x - 1, y + 1) +
+           1 * getPixel(x + 1, y + 1)
 
-      var pixelY = (
-        (kernelY[0][0] * pixelAt(x - 1, y - 1)) +
-        (kernelY[0][1] * pixelAt(x, y - 1)) +
-        (kernelY[0][2] * pixelAt(x + 1, y - 1)) +
-      //  (kernelY[1][0] * pixelAt(x - 1, y)) +
-      //  (kernelY[1][1] * pixelAt(x, y)) +
-      //  (kernelY[1][2] * pixelAt(x + 1, y)) +
-        (kernelY[2][0] * pixelAt(x - 1, y + 1)) +
-        (kernelY[2][1] * pixelAt(x, y + 1)) +
-        (kernelY[2][2] * pixelAt(x + 1, y + 1))
-      );
+      let py = 
+        -1 * getPixel(x - 1, y - 1) +
+        -2 * getPixel(x    , y - 1) +
+        -1 * getPixel(x + 1, y - 1) +
+         1 * getPixel(x - 1, y + 1) +
+         2 * getPixel(x    , y + 1) +
+         1 * getPixel(x + 1, y + 1)
+      
+      let magnitude = (Math.sqrt((px * px) + (py * py)));
+      sobelData[i++] = magnitude>128?255:0
 
-      var magnitude = (Math.sqrt((pixelX * pixelX) + (pixelY * pixelY)))>>>0;
-
-      sobelData.push(magnitude)
-      //sobelData.push(magnitude>config.thresh?255:0)
+      //if (magnitude > 128) {
+        
+      //} 
     }
   }
 
   return sobelData;
 }
 function getdots( pixData ){
-//  for 
+
+  const dots = []
+  for (let y=0; y<config.height-1; y++) {
+    row = []
+    for (let x=1; x<config.width; x++) {
+      if (pixData[x+config.width*y] == 255) {
+        if (row.length) {
+          if (x - row[row.length-1][0] == row[row.length-1][1]+1)
+//            row[row.length-1] = [ row[row.length-1][0], row[row.length-1][1]+1 ]
+            row[row.length-1][1]++
+          else row.push([x,0])
+        } else row.push([x,0])
+      }
+
+    }
+    dots.push(row)
+  }
 
 
+  return dots
 }
+
+function connectdots(dots){
+
+  let contours=[]
+  for (let y in dots) {
+     
+    y=Number(y)
+    //if (y> 20) break;
+    for (let i in dots[y]) {
+      let x = dots[y][i][0]
+      if (y==0) contours.push([[x,y]])
+      else{
+        let closest = -1, cdist = 10000
+        for ( let j in dots[y-1] ) {
+          let x0 = dots[y-1][j][0]
+          let d = Math.abs(x-x0)
+          if (d < cdist) { closest=x0; cdist=d }
+        }
+        if (cdist > 3)
+          contours.push([[x,y]])
+        else {
+          let found=0
+          for (let k in contours) {
+            let last = contours[k][contours[k].length-1]
+            if (last[0] == closest && last[1] == y-1) {
+              contours[k].push([x,y])
+              found=1
+              break
+            }
+          }
+          if (found==0) contours.push([[x,y]])
+        }
+
+      }
+
+    }
+    for (let c in contours){
+      if (contours[c][contours[c].length-1][1] < y-1 && contours[c].length<4) {
+        contours.splice(c,1)
+        console.log('removed')
+      }
+    }
+  }
+
+  return contours
+}
+
+
+
 
 
 
@@ -146,20 +191,45 @@ async function render() {
 
   postMessage(['msg', "Finding edges"]);
   var sobelData;
-  await makeAsync(()=>{
+//  await makeAsync(()=>{
 
         
- //   sobelData = SobelFilter(pixData);
-
+    sobelData = SobelFilter(pixData);
+//`    var dots = 
+/*
     sobelData=[]
     var pixelAt = autocontrast(0.1)
     for (let y=0;y<config.height;y++)
       for (let x=0;x<config.width;x++)
         sobelData[x+y*config.width]=pixelAt(x,y);
+*/
 
-  })
+//  })
+  // plotdots
+  dots = getdots(sobelData)
 
-  postMessage(['dbg', sobelData])
+  contours = connectdots(dots)
+  console.log(contours)
+
+
+  for (let i in sobelData) sobelData[i]/=8
+
+
+//  for (let y=0;y<config.width;y++){
+//    if (dots[y])
+  for (let y in dots) {
+    for (let row=0; row<dots[y].length; row++){
+      let x = dots[y][row][0]
+      let ind= (y*config.width+x)
+      sobelData[ ind ] = 255
+    }
+  }
+
+  postMessage(['points', contours])
+
+  postMessage(['dbgimg', sobelData])
+//  postMessage(['dbg', dots])
+
 
 
 

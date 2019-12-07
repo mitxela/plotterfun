@@ -144,7 +144,11 @@ function loadWorker(src){
     // message, e.g. progress bar
     } else if (type == 'msg') {
       msgbox.innerHTML = data;
+
     } else if (type == 'dbg'){
+      window.data = data
+      console.log(data) 
+    } else if (type == 'dbgimg'){
       //window.data = data;
       //console.log(data)
 
