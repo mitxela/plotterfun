@@ -26,7 +26,8 @@ Algorithm:
 <option value=spiral.js>Spiral</option>
 <option value=polyspiral.js>Polygon Spiral</option>
 <option value=sawtooth.js>Sawtooth</option>
-<option value=stipple.js>Stippletest</option>
+<option value=stipple.js>Stipples</option>
+<option value=linedraw.js>Linedraw</option>
 </select>
 </form>
 <form id=imageParams></form>
@@ -62,9 +63,9 @@ config = {};
 // upload to server option - pipe to hpgl python script or smoething
 
 
-if (!navigator.mediaDevices) {
+if (1 || !navigator.mediaDevices) {
   video = new Image()
-  video.src='snapshot2.jpg'
+  video.src='lenna.png'
   video.onload=()=>{video.videoWidth=video.width;video.videoHeight=video.height}
 } else 
 navigator.mediaDevices.getUserMedia({video: true}).then(function(v) {
@@ -78,7 +79,7 @@ function snapshot(){
   // config width height should come from sliders maybe?
   [canvas.width, canvas.height] = [video.videoWidth, video.videoHeight];
   ctx.drawImage(video, 0, 0)
-  StackBlur.canvasRGB(canvas, 0,0,canvas.width,canvas.height,1) // small amount of blur to eliminate noise
+//  StackBlur.canvasRGB(canvas, 0,0,canvas.width,canvas.height,1) // small amount of blur to eliminate noise
   process()
 }
 
@@ -144,8 +145,19 @@ function loadWorker(src){
     } else if (type == 'msg') {
       msgbox.innerHTML = data;
     } else if (type == 'dbg'){
-      window.data = data;
-      console.log(data)
+      //window.data = data;
+      //console.log(data)
+
+      let id = new Uint8ClampedArray(config.width*config.height*4)
+      for (let i=0;i<data.length;i++) {
+        id[i*4+0] = 
+        id[i*4+1] = 
+        id[i*4+2] = data[i]
+        id[i*4+3] = 255
+      }
+      dbgcanvas.width=config.width
+      dbgcanvas.height=config.height
+      dbgctx.putImageData(new ImageData(id,config.width,config.height),0,0)
 
     // vector data result
     } else {
@@ -155,11 +167,11 @@ function loadWorker(src){
         if (typeof data[0][0] !== "object") data = [data]
 
         if (data[0][0].x) data.forEach(addPathNamed)
-	else data.forEach(addPathArray)
+        else data.forEach(addPathArray)
 
       } else if (type == 'circles') {
         if (data[0].x) data.forEach(addCircleNamed)
-	else data.forEach(addCircleArray)
+        else data.forEach(addCircleArray)
       }
 
     } 
@@ -216,5 +228,11 @@ function download(){
 
 algorithm.onchange()
 
+/// debug
+dbgcanvas = document.createElement("canvas")
+dbgctx=dbgcanvas.getContext("2d")
+document.body.append(dbgcanvas)
 
 </script>
+
+<style>canvas{position:fixed; right:10px; top:10px; }</style>
