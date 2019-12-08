@@ -1,11 +1,10 @@
 importScripts('helpers.js')
 
 postMessage(['sliders', [
-  {label: 'Contours', type:'checkbox', noRestart:true},
-  {label: 'Contour detail', value: 2, min: 1, max: 3},
-  {label: 'Hatching', type:'checkbox', noRestart:true},
+  {label: 'Contours', type:'checkbox', checked:true},
+  {label: 'Contour detail', value: 8, min: 1, max: 24},
+  {label: 'Hatching', type:'checkbox', checked:true},
   {label: 'Hatch scale', value: 8, min: 1, max: 24},
-  {label: 'simp', value: 8, min: 1, max: 24},
 ]]);
 
 let config, pixData=[], getPixel, outlines=[];
@@ -22,10 +21,6 @@ onmessage = function(e) {
 function makeAsync(f) {
   return new Promise(resolve => setTimeout(() => resolve(f()), 0) )
 }
-function draw() {
-  //postMessage(['points', outlines])
-}
-
 
 function autocontrast(cutoff){
 
@@ -115,8 +110,9 @@ function getdotsV( pixData ){
     row = []
     for (let x=1; x<config.width; x++) {
       if (pixData[x][y] == 255) {
-        row.push(x)
+        let x0=x
         while (x<config.width && pixData[x][y] ==255) x++
+        row.push(Math.round((x+x0)/2))
       }
     }
     dots.push(row)
@@ -130,8 +126,9 @@ function getdotsH( pixData ){
     row = []
     for (let y=1; y<config.height; y++) {
       if (pixData[x][y] == 255) {
-        row.push(y)
+        let y0 = y
         while (y<config.height && pixData[x][y] ==255) y++
+        row.push(Math.round((y+y0)/2))
       }
     }
     dots.push(row)
@@ -227,92 +224,22 @@ function connectdotsH(dots){
   return contours
 }
 
-function hatch( getPixel ) {
-
-  let sc = 8
-
-
-  let lg1 = [], lg2 = []
-
-  for (let x=0;x<config.width;x+=sc) {
-    for (let y=0;y<config.height;y+=sc) {
-      let p = getPixel(x,y)
-      if (p>144) continue
-      if (p>64) {
-        lg1.push( [[x,y+sc/4], [x+sc, y+sc/4] ])
-      } else if (p>16) {
-        lg1.push( [[x,y+sc/4], [x+sc, y+sc/4] ])
-        lg2.push( [[x+sc,y], [x, y+sc] ])
-      } else {
-        lg1.push( [[x,y+sc/4], [x+sc, y+sc/4] ])
-        lg1.push( [[x,y+sc/2+sc/4], [x+sc, y+sc/2+sc/4] ])
-        lg2.push( [[x+sc,y], [x, y+sc] ])
-      }
-    }
-  }
-
-  function mergeEnds(lines){
-    for (let i in lines) {
-      for (let j in lines) {
-        if (lines[i].length && lines[j].length)
-          if (lines[i][lines[i].length-1][0] == lines[j][0][0] && lines[i][lines[i].length-1][1] == lines[j][0][1]) {
-            lines[i] = lines[i].concat(lines[j].slice(1))
-            lines[j]=[]
-          }
-      }
-    }
-    var newlines = []
-    for (let i in lines) if (lines[i].length) newlines.push(lines[i])
-    return newlines
-  }
-  return mergeEnds(lg1).concat(mergeEnds(lg2))
-/*
-
-    for i in range(0,len(lines)):
-        for j in range(0,len(lines[i])):
-            lines[i][j] = int(lines[i][j][0]+sc*perlin.noise(i*0.5,j*0.1,1)),int(lines[i][j][1]+sc*perlin.noise(i*0.5,j*0.1,2))-j
-    return lines
-
-*/
-
-
-}
-
-
-
-//async 
-function render() {
-
-
-  postMessage(['msg', "Finding edges"]);
-//  await makeAsync(()=>{
-
-  const getPixel = autocontrast(0.1)
-
-let hatches = hatch(getPixel)
-//postMessage(['points',hatches])
-
-
-
-
+function getContours( getPixel, strokeScale ){
   let edges = SobelFilter( getPixel );
   let contoursH = connectdotsH(getdotsH(edges))
   let contoursV = connectdotsV(getdotsV(edges))
 
-
   let contours = contoursH.concat(contoursV)
-//  let contours = contoursV
-
 
   function distance(a,b){
-    return ( (a[0]-b[0])*(a[0]-b[0]) +(a[1]-b[1])*(a[1]-b[1]) )
+    return Math.sqrt( (a[0]-b[0])*(a[0]-b[0]) +(a[1]-b[1])*(a[1]-b[1]) )
   }
 
   // link ends of strokes less than 8 px apart
   for (let i in contours) {
     for (let j in contours) {
       if (contours[i].length && contours[j].length)
-        if (distance( contours[j][0], contours[i][contours[i].length-1] ) < 64 ) {
+        if (distance( contours[j][0], contours[i][contours[i].length-1] ) < strokeScale ) {
           contours[i] = contours[i].concat(contours[j])
           contours[j] = []
         }
@@ -323,59 +250,116 @@ let hatches = hatch(getPixel)
   let nc=[]
   for (let i in contours) {
     let s = []
-    for (let j=0; j<contours[i].length; j+=config.simp) s.push(contours[i][j]) //todo: average instead of skipping
+    for (let j=0; j<contours[i].length; j+= strokeScale) s.push(contours[i][j]) //todo: average instead of skipping
     if (s.length) nc.push(s)
   }
-  contours = nc
+  return nc
+
+}
 
 
+function hatch2( getPixel, sc) {
 
+  let lines = []
 
-
-
-
-
- /* 
-  let dbg = Array(config.width*config.height)
-  //for (let i=0;i<config.width*config.height;i++) dbg[i]=0;
-  for (let x=0;x<config.width;x++)
-    for (let y=0;y<config.height;y++)
-      dbg[x+y*config.width] = pixData[x][y]/8
-//*/
-/*
-  for (let y in dotsV) {
-    for (let row=0; row<dotsV[y].length; row++){
-      let x = dotsV[y][row]
-      //pixData[x][y] = 255
-      dbg[y*config.width+x] = 255
+  //horizontal hatches
+  for (let y=0;y<config.height;y+=sc) {
+    let pendown = false
+    for (let x=0;x<config.width;x+=sc) {
+      let p = getPixel(x,y)
+      if (p<=144) {
+        if (!pendown) lines.push([[x,y]])
+        pendown = true
+      } else if (pendown==true) {
+         lines[lines.length-1].push([x-sc,y])
+         pendown = false
+      }
     }
   }
-//*/
-/*
-  for (let x in dotsH) {
-    x=Number(x)
-    for (let row=0; row<dotsH[x].length; row++){
-      let y = dotsH[x][row]
-      //pixData[x][y] = 255
-      dbg[y*config.width+x] = 255
+
+  // denser horizontal
+  for (let y=Math.round(sc/2);y<config.height;y+=sc) {
+    let pendown = false
+    for (let x=0;x<config.width;x+=sc) {
+      let p = getPixel(x,y)
+      if (p<=64) {
+        if (!pendown) lines.push([[x,y]])
+        pendown = true
+      } else if (pendown==true) {
+         lines[lines.length-1].push([x-sc,y])
+         pendown = false
+      }
     }
   }
-//*/
-//console.log(dotsH)
 
-  postMessage(['points', nc.concat(hatches)])
+  // diagonal (top-left)
+  for (let sy=0;sy<config.height;sy+=sc) {
+    let pendown = false
+    for (let x=0, y=sy; x<config.width && y>0;x+=sc, y-=sc) {
+      let p = getPixel(x,y)
+      if (p<=16) {
+        if (!pendown) lines.push([[x,y]])
+        pendown = true
+      } else if (pendown==true) {
+         lines[lines.length-1].push([x-sc,y+sc])
+         pendown = false
+      }
+    }
+  }
+  // diagonal (bottom right)
+  for (let sx=0;sx<config.width;sx+=sc) {
+    let pendown = false
+    for (let x=sx, y=config.height; x<config.width && y>0; x+=sc, y-=sc) {
+      let p = getPixel(x,y)
+      if (p<=16) {
+        if (!pendown) lines.push([[x,y]])
+        pendown = true
+      } else if (pendown==true) {
+         lines[lines.length-1].push([x-sc,y+sc])
+         pendown = false
+      }
+    }
+  }
+
+
+/*
+
+
+    for i in range(0,len(lines)):
+        for j in range(0,len(lines[i])):
+            lines[i][j] = int(lines[i][j][0]+sc*perlin.noise(i*0.5,j*0.1,1)),int(lines[i][j][1]+sc*perlin.noise(i*0.5,j*0.1,2))-j
+    return lines
+*/
+
+  return lines
+}
 
 
 
+//async 
+function render() {
 
 
- //postMessage(['dbgimg', dbg])
-//  postMessage(['dbg', dots])
+  postMessage(['msg', "Calculating..."]);
+//  await makeAsync(()=>{
+
+  const getPixel = autocontrast(0.1)
+
+  let output = []
 
 
+  if (config.Contours)
+    output = output.concat(getContours( getPixel, config['Contour detail']))
+  
+  if (config.Hatching)
+    output = output.concat(hatch2(getPixel, config['Hatch scale']))
 
 
-  draw()
+  if (output.length) postMessage(['points', output])
+
+// })
+
+
   postMessage(['msg', "Done"]);
 }
 
