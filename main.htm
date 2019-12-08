@@ -6,7 +6,8 @@ input~input[type=text] {width:40px}
 video{max-width:100%;transform:scaleX(-1)}
 svg{position:fixed; left:320px; top:10px;}
 form{padding:5px; line-height:2em}
-#msgbox{position:fixed; left: 320px; bottom:20px}
+#msgbox{position:fixed; left:320px; bottom:20px; padding:6px}
+#msgbox:not(:empty) {background:rgba(255,255,255,0.8); }
 </style>
 
 <div id=sidebar>
@@ -30,7 +31,6 @@ Algorithm:
 <option value=linedraw.js>Linedraw</option>
 </select>
 </form>
-<form id=imageParams></form>
 <form id=algoParams></form>
 
 <button onclick=download()>Download SVG</button>
@@ -48,14 +48,6 @@ canvas=document.createElement("canvas")
 ctx=canvas.getContext("2d")
 
 config = {};
-
-[
-  {label: 'Inverted', type:'checkbox'},
-  {label: 'Brightness', value: 0, min: -100, max: 100},
-  {label: 'Contrast', value: 0, min: -100, max: 100},
-  {label: 'Min brightness', value: 0, min: 0, max: 255},
-  {label: 'Max brightness', value: 255, min: 0, max: 255},
-].forEach(c => addController(c, imageParams))
 
 // TODO
 // normal image selection
@@ -148,20 +140,6 @@ function loadWorker(src){
     } else if (type == 'dbg'){
       window.data = data
       console.log(data) 
-    } else if (type == 'dbgimg'){
-      //window.data = data;
-      //console.log(data)
-
-      let id = new Uint8ClampedArray(config.width*config.height*4)
-      for (let i=0;i<data.length;i++) {
-        id[i*4+0] = 
-        id[i*4+1] = 
-        id[i*4+2] = data[i]
-        id[i*4+3] = 255
-      }
-      dbgcanvas.width=config.width
-      dbgcanvas.height=config.height
-      dbgctx.putImageData(new ImageData(id,config.width,config.height),0,0)
 
     // vector data result
     } else {
@@ -232,11 +210,5 @@ function download(){
 
 algorithm.onchange()
 
-/// debug
-dbgcanvas = document.createElement("canvas")
-dbgctx=dbgcanvas.getContext("2d")
-document.body.append(dbgcanvas)
 
 </script>
-
-<style>canvas{position:fixed; right:10px; top:10px; }</style>

@@ -1,11 +1,11 @@
 importScripts('helpers.js')
 
-postMessage(['sliders', [
+postMessage(['sliders', defaultControls.concat([
   {label: 'Polygon', value: 4, min: 3, max: 8},
   {label: 'Frequency', value: 150, min: 5, max: 256},
   {label: 'Amplitude', value: 1, min: 0.1, max: 5, step: 0.1},
   {label: 'Spacing', value: 1, min: 0.5, max: 5, step: 0.1},
-]]);
+])]);
 
 
 onmessage = function(e) {

@@ -1,12 +1,12 @@
 importScripts('helpers.js', 'external/rhill-voronoi-core.min.js')
 
-postMessage(['sliders', [
+postMessage(['sliders', defaultControls.concat([
   {label: 'Max Stipples', value: 2000, min: 500, max: 10000},
   {label: 'Max Iterations', value: 30, min:2, max:200},
   {label: 'Min dot size', value: 2, min: 0.5, max: 8, step:0.1, noRestart:true},
   {label: 'Dot size range', value: 4, min: 0, max: 20, step:0.1, noRestart:true},
   {label: 'TSP Art', type:'checkbox', noRestart:true},
-]]);
+])]);
 
 // TODO
 // noRestart on max iterations change?

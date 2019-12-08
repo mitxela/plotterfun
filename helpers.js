@@ -1,3 +1,11 @@
+defaultControls = [
+  {label: 'Inverted', type:'checkbox'},
+  {label: 'Brightness', value: 0, min: -100, max: 100},
+  {label: 'Contrast', value: 0, min: -100, max: 100},
+  {label: 'Min brightness', value: 0, min: 0, max: 255},
+  {label: 'Max brightness', value: 255, min: 0, max: 255},
+]
+
 
 // Apply brightness / contrast and flatten to monochrome
 // taken from squigglecam
@@ -33,6 +41,57 @@ function pixelProcessor(config, imagePixels){
     }
   
     return Math.max(maxBrightness-b,0);
+  }
+}
+
+
+
+// autocontrast, my implementation
+function autocontrast(pixData, cutoff){
+
+  function luma(x,y) {
+    let i = 4*(x+width*y)
+    return pixData.data[i]*0.299 + pixData.data[i+1]*0.587 + pixData.data[i]*0.114 // ITU-R 601-2
+//    return pixData.data[i]*0.2125 + pixData.data[i+1]*0.7154 + pixData.data[i]*0.0721 // ITU-R 709
+  }
+
+  let hist = []
+  for (let i=0;i<256;i++) hist[i]=0;
+
+  for (let x=0;x<width;x++) {
+    for (let y=0;y<height;y++) {
+      let b = Math.round(luma(x,y))
+      hist[b]++ 
+    }
+  }
+  let total=0, low=0, high=255
+  for (let i=0;i<256;i++){
+    total += hist[i];
+  }
+  cutoff*=total;
+
+  for (let i=0;i<255;i++) {
+    low+=hist[i]
+    if (low>cutoff) {low=i; break}
+  }
+  for (let i=255;i>1;i--) {
+    high+=hist[i]
+    if (high>=cutoff) {high=i; break}
+  }
+
+  let scale = (255/(high-low)) || 1
+
+  const pixelCache=[]
+  for (let x=0;x<width;x++) {
+    pixelCache[x]=[]
+    for (let y=0;y<height;y++) {
+      pixelCache[x][y] = Math.min(255,Math.max(0,(luma(x,y)-low)*scale ))
+    }
+  }
+  return (x,y)=>{
+    return (x>=0 && y>=0 && x<width &&y<height)
+      ? pixelCache[x][y]
+      : 0
   }
 }
 
