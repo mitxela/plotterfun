@@ -5,6 +5,7 @@ postMessage(['sliders', [
   {label: 'Contour detail', value: 8, min: 1, max: 16},
   {label: 'Hatching', type:'checkbox', checked:true},
   {label: 'Hatch scale', value: 8, min: 1, max: 24},
+  {label: 'Noise scale', value: 1, min: 0, max: 2, step:0.1},
   {label: 'Optimize route', type:'checkbox', checked:true},
 ]]);
 
@@ -238,6 +239,9 @@ function getContours( getPixel, strokeScale ){
     for (let j=0; j<contours[i].length; j+= strokeScale) s.push(contours[i][j]) //todo: average instead of skipping
     if (s.length) nc.push(s)
   }
+
+  addNoise(nc, 10)
+
   return nc
 
 }
@@ -255,11 +259,9 @@ function hatch2( getPixel, sc) {
       let p = getPixel(x,y)
       if (p<=144) {
         if (!pendown) lines.push([[x,y]])
+        else lines[lines.length-1].push([x,y])
         pendown = true
-      } else if (pendown==true) {
-         lines[lines.length-1].push([x-sc,y])
-         pendown = false
-      }
+      } else pendown = false
     }
   }
 
@@ -270,11 +272,9 @@ function hatch2( getPixel, sc) {
       let p = getPixel(x,y)
       if (p<=64) {
         if (!pendown) lines.push([[x,y]])
+        else lines[lines.length-1].push([x,y])
         pendown = true
-      } else if (pendown==true) {
-         lines[lines.length-1].push([x-sc,y])
-         pendown = false
-      }
+      } else pendown = false 
     }
   }
 
@@ -285,11 +285,9 @@ function hatch2( getPixel, sc) {
       let p = getPixel(x,y)
       if (p<=16) {
         if (!pendown) lines.push([[x,y]])
+        else lines[lines.length-1].push([x,y])
         pendown = true
-      } else if (pendown==true) {
-         lines[lines.length-1].push([x-sc,y+sc])
-         pendown = false
-      }
+      } else pendown = false 
     }
   }
   // diagonal (bottom right)
@@ -299,21 +297,13 @@ function hatch2( getPixel, sc) {
       let p = getPixel(x,y)
       if (p<=16) {
         if (!pendown) lines.push([[x,y]])
+        else lines[lines.length-1].push([x,y])
         pendown = true
-      } else if (pendown==true) {
-         lines[lines.length-1].push([x-sc,y+sc])
-         pendown = false
-      }
+      } else pendown = false
     }
   }
 
-
-/*
-    for i in range(0,len(lines)):
-        for j in range(0,len(lines[i])):
-            lines[i][j] = int(lines[i][j][0]+sc*perlin.noise(i*0.5,j*0.1,1)),int(lines[i][j][1]+sc*perlin.noise(i*0.5,j*0.1,2))-j
-    return lines
-*/
+  addNoise( lines, sc )
 
   return lines
 }
@@ -348,6 +338,17 @@ function sortlines(clines){
   return slines
 }
 
+function addNoise( lines, sc ) {
+  sc *= config['Noise scale']
+  for (let i in lines) {
+    for (let j in lines[i]) {
+      lines[i][j][0] = ( lines[i][j][0] + sc*perlinNoise(i*0.5,j*0.1,1) )
+      lines[i][j][1] = ( lines[i][j][1] + sc*perlinNoise(i*0.5,j*0.1,1) )
+    }
+  }
+}
+
+
 let width, height, config; 
 onmessage = function(e) {
   [ config, pixData ] = e.data;
@@ -375,5 +376,6 @@ onmessage = function(e) {
   postMessage(['points', output])
   postMessage(['msg', "Done"]);
 }
+
 
 
