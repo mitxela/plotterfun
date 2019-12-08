@@ -6,11 +6,11 @@ postMessage(['sliders', defaultControls.concat([
   {label: 'Min dot size', value: 2, min: 0.5, max: 8, step:0.1, noRestart:true},
   {label: 'Dot size range', value: 4, min: 0, max: 20, step:0.1, noRestart:true},
   {label: 'TSP Art', type:'checkbox', noRestart:true},
+  {label: 'Stipple type', type:'select', options:['Circles', 'Spirals', 'Hexagons'], noRestart:true},
 ])]);
 
 // TODO
 // noRestart on max iterations change?
-// stipple shape - empty, filled, spiral, hexagon?
 // top left two stipples always unstable
 
 
@@ -37,10 +37,36 @@ function redraw(tsp){
     postMessage(['points', particles])
   } else {
     let minsize = config['Min dot size'], scale = config['Dot size range']/255;
-    for (let p in particles){
-      particles[p].r=getPixel(particles[p].x,particles[p].y)*scale + minsize 
+
+    let points=[]
+    switch (config['Stipple type']) {
+    case 'Spirals':
+      for (let p in particles) {
+        let theta=0, r=getPixel(particles[p].x,particles[p].y)*scale + minsize, spiral=[]
+        while (r>=0.1) {
+          spiral.push( [particles[p].x + r*Math.cos(theta), particles[p].y + r*Math.sin(theta)] )
+          theta+=0.5
+          if (theta>6.3) r-=0.1 //do one full loop before spiraling in
+        }
+        points.push(spiral)
+      }
+      postMessage(['points', points])
+      break;
+    case 'Hexagons':
+      let s60 = Math.sin(60*Math.PI/180), c60 = 0.5 
+      for (let p in particles) {
+        let x=particles[p].x, y=particles[p].y
+        let r=getPixel(x,y)*scale + minsize 
+        let hex = [ [x+r,y], [x+r*c60,y-r*s60], [x-r*c60, y-r*s60], [x-r, y], [x-r*c60, y+r*s60], [x+r*c60,y+r*s60], [x+r,y] ]
+        points.push(hex)
+      }
+      postMessage(['points', points])
+      break;
+    default: //circles
+      for (let p in particles)
+        particles[p].r=getPixel(particles[p].x,particles[p].y)*scale + minsize 
+      postMessage(['circles', particles])
     }
-    postMessage(['circles', particles])
   }
 }
 

@@ -99,7 +99,17 @@ function addController(control, form){
   if (config[control.label]) control.value = config[control.label];
   else config[control.label] = control.value;
 
-  if (control.type=='checkbox') {
+  if (control.type=='select') {
+    s = document.createElement('select')
+    s.oninput=e=>{config[control.label] = s.value; ctrlChange(control)}
+    for (let i in control.options) {
+      s.append(new Option( control.options[i], control.options[i], i==0, i==0 ))
+    }
+    l.append(control.label+': ')
+    l.append(s)
+    form.append(l)
+    return
+  } else if (control.type=='checkbox') {
     s.oninput=e=>{config[control.label] = s.checked; ctrlChange(control)}
     config[control.label] = s.checked
     l.append(s)  
