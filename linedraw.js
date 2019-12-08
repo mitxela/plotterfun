@@ -77,10 +77,9 @@ function autocontrast(cutoff){
 
 
 
-function SobelFilter() {
+function SobelFilter(getPixel) {
 
   const pixData = Array(config.width)
-  const getPixel = autocontrast(0.1)
   let i = 0;
 
   for (let x = 0; x < config.width; x++) {
@@ -228,22 +227,77 @@ function connectdotsH(dots){
   return contours
 }
 
+function hatch( getPixel ) {
 
+  let sc = 8
+
+
+  let lg1 = [], lg2 = []
+
+  for (let x=0;x<config.width;x+=sc) {
+    for (let y=0;y<config.height;y+=sc) {
+      let p = getPixel(x,y)
+      if (p>144) continue
+      if (p>64) {
+        lg1.push( [[x,y+sc/4], [x+sc, y+sc/4] ])
+      } else if (p>16) {
+        lg1.push( [[x,y+sc/4], [x+sc, y+sc/4] ])
+        lg2.push( [[x+sc,y], [x, y+sc] ])
+      } else {
+        lg1.push( [[x,y+sc/4], [x+sc, y+sc/4] ])
+        lg1.push( [[x,y+sc/2+sc/4], [x+sc, y+sc/2+sc/4] ])
+        lg2.push( [[x+sc,y], [x, y+sc] ])
+      }
+    }
+  }
+
+  function mergeEnds(lines){
+    for (let i in lines) {
+      for (let j in lines) {
+        if (lines[i].length && lines[j].length)
+          if (lines[i][lines[i].length-1][0] == lines[j][0][0] && lines[i][lines[i].length-1][1] == lines[j][0][1]) {
+            lines[i] = lines[i].concat(lines[j].slice(1))
+            lines[j]=[]
+          }
+      }
+    }
+    var newlines = []
+    for (let i in lines) if (lines[i].length) newlines.push(lines[i])
+    return newlines
+  }
+  return mergeEnds(lg1).concat(mergeEnds(lg2))
+/*
+
+    for i in range(0,len(lines)):
+        for j in range(0,len(lines[i])):
+            lines[i][j] = int(lines[i][j][0]+sc*perlin.noise(i*0.5,j*0.1,1)),int(lines[i][j][1]+sc*perlin.noise(i*0.5,j*0.1,2))-j
+    return lines
+
+*/
+
+
+}
 
 
 
 //async 
 function render() {
 
-//  getPixel = pixelProcessor(config, pixData)
 
   postMessage(['msg', "Finding edges"]);
 //  await makeAsync(()=>{
 
-        
-  let pixData = SobelFilter();
-  let contoursH = connectdotsH(getdotsH(pixData))
-  let contoursV = connectdotsV(getdotsV(pixData))
+  const getPixel = autocontrast(0.1)
+
+let hatches = hatch(getPixel)
+//postMessage(['points',hatches])
+
+
+
+
+  let edges = SobelFilter( getPixel );
+  let contoursH = connectdotsH(getdotsH(edges))
+  let contoursV = connectdotsV(getdotsV(edges))
 
 
   let contours = contoursH.concat(contoursV)
@@ -275,6 +329,12 @@ function render() {
   contours = nc
 
 
+
+
+
+
+
+
  /* 
   let dbg = Array(config.width*config.height)
   //for (let i=0;i<config.width*config.height;i++) dbg[i]=0;
@@ -303,7 +363,7 @@ function render() {
 //*/
 //console.log(dotsH)
 
-  postMessage(['points', nc])
+  postMessage(['points', nc.concat(hatches)])
 
 
 
