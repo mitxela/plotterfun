@@ -1,4 +1,4 @@
-importScripts('helpers.js', 'external/rhill-voronoi-core.min.js')
+importScripts('helpers.js', 'external/rhill-voronoi-core.min.js', 'external/stackblur.min.js')
 
 postMessage(['sliders', defaultControls.concat([
   {label: 'Max Stipples', value: 2000, min: 500, max: 10000},
@@ -9,9 +9,11 @@ postMessage(['sliders', defaultControls.concat([
   {label: 'Stipple type', type:'select', options:['Circles', 'Spirals', 'Hexagons'], noRestart:true},
 ])]);
 
+
 // TODO
 // noRestart on max iterations change?
 // top left two stipples always unstable
+// TSP termination could do with improvement
 
 
 let particles, config, pixData, pixelCache =[];
@@ -71,6 +73,8 @@ function redraw(tsp){
 }
 
 async function render() {
+
+  await makeAsync(()=> StackBlur.imageDataRGB(pixData, 0,0,config.width,config.height, 1) )
 
   const getPixelSlow = pixelProcessor(config, pixData)
 

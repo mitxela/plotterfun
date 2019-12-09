@@ -1,25 +1,54 @@
 <!doctype html><meta charset=utf-8>
 <style>
 *{font-family:sans-serif}
+h2{padding:10px;margin:0}
 input~input[type=text] {width:40px}
+input[type=checkbox]{vertical-align:-10%;margin:0px 5px}
 #sidebar {width:300px;background:#ddf}
 video{max-width:100%;transform:scaleX(-1)}
+canvas{max-width:100%}
 svg{position:fixed; left:320px; top:10px;}
 form{padding:5px; line-height:2em}
 #msgbox{position:fixed; left:320px; bottom:20px; padding:6px}
 #msgbox:not(:empty) {background:rgba(255,255,255,0.8); }
+#webcam{display:none}
+button{cursor:pointer; border:0;padding:5px 10px;background:#aaa; margin:0 20px}
+#tabbar {background:#ccc;}
+#tabbar button{margin:0}
+button{background:#ccc;outline:none;font-weight:bold;color:#333;}
+button:hover{background:#666 !important;color:#fff}
+#tabbar button.active{background:#999}
+#imgselect,#webcam {text-align:justify;text-align-last:justify;}
+#algoSelect{background:#eee;margin:5px 0}
+canvas{ /* checkerboard pattern */ 
+  background-color: #f8f8f8;
+  background-image: 
+    linear-gradient(45deg, #e0e0e0 25%, transparent 25%, transparent 75%, #e0e0e0 75%, #e0e0e0),
+    linear-gradient(45deg, #e0e0e0 25%, transparent 25%, transparent 75%, #e0e0e0 75%, #e0e0e0);
+  background-size: 40px 40px;
+  background-position: 0 0, 20px 20px;
+}
 </style>
 
 <div id=sidebar>
 
+<h2>Plotterfun</h2>
 
+<div id=tabbar>
+<button id=tab1 onclick='tabImage()'>Image</button><button id=tab2 onclick='tabWebcam()'>Webcam</button>
+</div>
+<div id=imgselect>
+<canvas></canvas>
+<button onclick='selectImage()'>Select image</button>
+<button onclick='useImage()'>Use image</button>
+</div>
 <div id=webcam>
 <video autoplay></video>
 <button onclick='video.paused?video.play():video.pause()'>Pause</button>
 <button onclick='snapshot()'>Use image</button>
 </div>
 
-<form>
+<form id=algoSelect>
 Algorithm: 
 <select id=algorithm onchange='loadWorker(this.value)'>
 <option value=squiggle.js>Squiggle</option>
@@ -42,6 +71,8 @@ Algorithm:
 
 <script src=external/stackblur.min.js></script>
 <script>
+preview=document.querySelector("canvas")
+prectx=preview.getContext("2d")
 svg=document.querySelector('svg');
 video=document.querySelector('video');
 canvas=document.createElement("canvas")
@@ -49,21 +80,62 @@ ctx=canvas.getContext("2d")
 
 config = {};
 
+cw = 640
+ch = 480
+preview.width=cw
+preview.height=ch
+prectx.fillStyle='#fff'
+
 // TODO
-// normal image selection
 // width/height controls, resize webcam keeping aspect ratio
 // upload to server option - pipe to hpgl python script or smoething
 
+function tabImage(){
+  if (video.srcObject && video.srcObject.getTracks().length) video.srcObject.getTracks()[0].stop()
 
-if (1 || !navigator.mediaDevices) {
-  video = new Image()
-  video.src='lenna.png'
-  video.onload=()=>{video.videoWidth=video.width;video.videoHeight=video.height}
-} else 
-navigator.mediaDevices.getUserMedia({video: true}).then(function(v) {
-  video.srcObject = v;
-//  video.onplay=function(){process()}
-}).catch(function(e){console.log(e)});
+  webcam.style.display='none'
+  imgselect.style.display='block'
+  tab1.className='active'
+  tab2.className=''
+}
+tabImage()
+
+img = null;
+scale = 1;
+offset = [0,0]
+function selectImage(){
+  let d= document.createElement('input')
+  d.type='file'
+  d.onchange=function(e){
+    img = new Image();
+    img.onload=function(){
+      let w=img.width, h=img.height;
+      scale = Math.min(ch/h, cw/w)
+      offset = [ (cw-w*scale)/2, (ch-h*scale)/2 ]
+      draw()
+    }
+    img.src = URL.createObjectURL(e.target.files[0]);
+  }
+  d.click()
+}
+function draw(){
+  prectx.fillRect(0,0,cw,ch)
+  prectx.drawImage(img, offset[0],offset[1], scale*img.width, scale*img.height)
+}
+
+function tabWebcam(){
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    alert("could not open webcam");
+  } else 
+    navigator.mediaDevices.getUserMedia({video: true}).then(function(v) {
+      video.srcObject = v;
+      webcam.style.display='block'
+      imgselect.style.display='none'
+      tab2.className='active'
+      tab1.className=''
+    //  video.onplay=function(){process()}
+    }).catch(function(e){console.log(e); alert("error opening webcam")});
+}
 
 var imageset = false;
 function snapshot(){
@@ -71,7 +143,13 @@ function snapshot(){
   // config width height should come from sliders maybe?
   [canvas.width, canvas.height] = [video.videoWidth, video.videoHeight];
   ctx.drawImage(video, 0, 0)
-//  StackBlur.canvasRGB(canvas, 0,0,canvas.width,canvas.height,1) // small amount of blur to eliminate noise
+  process()
+}
+function useImage(){
+  if (!img) return
+  imageset=true;
+  [canvas.width, canvas.height] = [cw, ch];
+  ctx.drawImage(preview, 0,0)
   process()
 }
 
@@ -143,6 +221,7 @@ function loadWorker(src){
       algoParams.innerHTML="";
       data.forEach(c=>addController( c, algoParams ))
       process()
+
     // message, e.g. progress bar
     } else if (type == 'msg') {
       msgbox.innerHTML = data;
