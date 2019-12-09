@@ -4,9 +4,10 @@
 h2{padding:10px;margin:0}
 input~input[type=text] {width:40px}
 input[type=checkbox]{vertical-align:-10%;margin:0px 5px}
+input[type=number]{width:50px}
 #sidebar {width:300px;background:#ddf}
 video{max-width:100%;transform:scaleX(-1)}
-canvas{max-width:100%}
+canvas{max-width:100%; max-height:320px}
 svg{position:fixed; left:320px; top:10px;}
 form{padding:5px; line-height:2em}
 #msgbox{position:fixed; left:320px; bottom:20px; padding:6px}
@@ -38,7 +39,12 @@ canvas{ /* checkerboard pattern */
 <button id=tab1 onclick='tabImage()'>Image</button><button id=tab2 onclick='tabWebcam()'>Webcam</button>
 </div>
 <div id=imgselect>
-<canvas></canvas>
+<form>
+Canvas
+W:<input id=pcw type=number min=10 value=800 oninput='changeSize()'>
+H:<input id=pch type=number min=10 value=600 oninput='changeSize()'>
+</form>
+<canvas></canvas><br>
 <button onclick='selectImage()'>Select image</button>
 <button onclick='useImage()'>Use image</button>
 </div>
@@ -62,7 +68,7 @@ Algorithm:
 </form>
 <form id=algoParams></form>
 
-<button onclick=download()>Download SVG</button>
+<button style='font-size:large; margin:10px' onclick=download()>Download SVG</button>
 </div>
 
 <svg></svg>
@@ -80,14 +86,22 @@ ctx=canvas.getContext("2d")
 
 config = {};
 
-cw = 640
-ch = 480
-preview.width=cw
-preview.height=ch
+img = null;
+scale = 1;
+offset = [0,0]
 
 // TODO
-// width/height controls, resize webcam keeping aspect ratio
 // upload to server option - pipe to hpgl python script or smoething
+
+
+function changeSize(){
+  cw = parseInt(pcw.value)
+  ch = parseInt(pch.value)
+  preview.width=cw
+  preview.height=ch
+  draw()
+}
+changeSize()
 
 function tabImage(){
   if (video.srcObject && video.srcObject.getTracks().length) video.srcObject.getTracks()[0].stop()
@@ -99,9 +113,6 @@ function tabImage(){
 }
 tabImage()
 
-img = null;
-scale = 1;
-offset = [0,0]
 function selectImage(){
   let d= document.createElement('input')
   d.type='file'
@@ -109,6 +120,14 @@ function selectImage(){
     img = new Image();
     img.onload=function(){
       let w=img.width, h=img.height;
+
+      cw=parseInt(pcw.defaultValue) // reset size - worth it?
+
+      if (w>cw || h>ch) { ch=Math.round(cw*h/w) }
+      else if (w>10&&h>10){ch=h;cw=w}
+      preview.height = pch.value = ch 
+      preview.width = pcw.value = cw
+
       scale = Math.min(ch/h, cw/w)
       offset = [ cw/2, ch/2 ]
       draw()
@@ -133,11 +152,13 @@ preview.onmousedown=function(e){
     dx=e.clientX
     dy=e.clientY
     draw()
+    return false
   }
   document.onmouseup=function(){
     document.onmousemove=null
     document.onmouseup=null
   }
+  return false
 }
 preview.onwheel=function(e){
   scale *= e.deltaY>0 ?1.1:0.9;
@@ -155,7 +176,6 @@ function tabWebcam(){
       imgselect.style.display='none'
       tab2.className='active'
       tab1.className=''
-    //  video.onplay=function(){process()}
     }).catch(function(e){console.log(e); alert("error opening webcam")});
 }
 
