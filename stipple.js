@@ -205,8 +205,9 @@ async function render() {
   })
 
   // 2-opt optimization 
-  let numSwaps=1
-  while (numSwaps>0.5) {
+  let numSwaps=100
+  let terminate = 2000/maxParticles
+  while (numSwaps>terminate) {
     
     redraw(1)
     await makeAsync(()=>{
