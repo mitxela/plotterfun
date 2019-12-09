@@ -84,7 +84,6 @@ cw = 640
 ch = 480
 preview.width=cw
 preview.height=ch
-prectx.fillStyle='#fff'
 
 // TODO
 // width/height controls, resize webcam keeping aspect ratio
@@ -111,7 +110,7 @@ function selectImage(){
     img.onload=function(){
       let w=img.width, h=img.height;
       scale = Math.min(ch/h, cw/w)
-      offset = [ (cw-w*scale)/2, (ch-h*scale)/2 ]
+      offset = [ cw/2, ch/2 ]
       draw()
     }
     img.src = URL.createObjectURL(e.target.files[0]);
@@ -119,8 +118,31 @@ function selectImage(){
   d.click()
 }
 function draw(){
-  prectx.fillRect(0,0,cw,ch)
-  prectx.drawImage(img, offset[0],offset[1], scale*img.width, scale*img.height)
+  if (!img) return
+  prectx.clearRect(0,0,cw,ch)
+  prectx.drawImage(img, offset[0]-scale*img.width*0.5,offset[1]-scale*img.height*0.5, scale*img.width, scale*img.height)
+}
+preview.onmousedown=function(e){
+  let dx=e.clientX, dy=e.clientY
+  let csc = cw / preview.getBoundingClientRect().width
+
+  document.onmousemove=function(e){
+    let x=e.clientX-dx, y=e.clientY-dy
+    offset[0] += x*csc
+    offset[1] += y*csc
+    dx=e.clientX
+    dy=e.clientY
+    draw()
+  }
+  document.onmouseup=function(){
+    document.onmousemove=null
+    document.onmouseup=null
+  }
+}
+preview.onwheel=function(e){
+  scale *= e.deltaY>0 ?1.1:0.9;
+  draw()
+  return false;
 }
 
 function tabWebcam(){
@@ -149,6 +171,8 @@ function useImage(){
   if (!img) return
   imageset=true;
   [canvas.width, canvas.height] = [cw, ch];
+  ctx.fillStyle='#fff'
+  ctx.fillRect(0,0,cw,ch)
   ctx.drawImage(preview, 0,0)
   process()
 }
