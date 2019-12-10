@@ -279,11 +279,11 @@ function sortlines(clines){
         min=d2, closest=j, backwards=true
       }
     }
-    let l = clines.splice(closest,1)
+    let l = clines.splice(closest,1)[0]
     if (backwards) {
       l.reverse()
     }
-    slines=slines.concat(l)
+    slines=slines.concat([l])
     last = l[l.length-1]
   }
   return slines
@@ -327,6 +327,4 @@ onmessage = function(e) {
   postMessage(['points', output])
   postMessage(['msg', "Done"]);
 }
-
-
 

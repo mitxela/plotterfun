@@ -177,3 +177,17 @@ function autocontrast(pixData, cutoff){
   }
 })();
 
+
+// slowly draw the points list - useful for debugging
+function animatePointList(output){
+  let out=[],i=0,j=0;
+  (function f(){
+    if (!out[i]) out[i]=[]
+    out[i][j] = output[i][j]
+    if (++j>=output[i].length) j=0,i++
+  
+    postMessage(['points',out])
+    if (i<output.length) setTimeout(f,20)
+  })();
+}
+
