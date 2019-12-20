@@ -6,7 +6,7 @@ postMessage(['sliders', defaultControls.concat([
   {label: 'Min dot size', value: 2, min: 0.5, max: 8, step:0.1, noRestart:true},
   {label: 'Dot size range', value: 4, min: 0, max: 20, step:0.1, noRestart:true},
   {label: 'TSP Art', type:'checkbox', noRestart:true},
-  {label: 'Stipple type', type:'select', options:['Circles', 'Spirals', 'Hexagons'], noRestart:true},
+  {label: 'Stipple type', type:'select', options:['Circles', 'Spirals', 'Hexagons', 'Pentagrams'], noRestart:true},
 ])]);
 
 
@@ -63,6 +63,27 @@ function redraw(tsp){
         points.push(hex)
       }
       postMessage(['points', points])
+      break;
+    case 'Pentagrams':
+
+      let px = [], py = []
+      for (let p=0;p<360;p+=360/5) {
+        px.push( Math.sin(p*Math.PI/180))
+        py.push(Math.cos(p*Math.PI/180) )
+      }
+      for (let p in particles) {
+        let x=particles[p].x, y=particles[p].y
+        let r=getPixel(x,y)*scale + minsize 
+        points.push( [
+           [x+r*px[0],y+r*py[0]], 
+           [x+r*px[3],y+r*py[3]], 
+           [x+r*px[1],y+r*py[1]], 
+           [x+r*px[4],y+r*py[4]], 
+           [x+r*px[2],y+r*py[2]], 
+           [x+r*px[0],y+r*py[0]], 
+        ])
+      }
+      postMessage(['points', points ])
       break;
     default: //circles
       for (let p in particles)
