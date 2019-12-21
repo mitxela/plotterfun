@@ -6,7 +6,7 @@ postMessage(['sliders', defaultControls.concat([
   {label: 'Min dot size', value: 2, min: 0.5, max: 8, step:0.1, noRestart:true},
   {label: 'Dot size range', value: 4, min: 0, max: 20, step:0.1, noRestart:true},
   {label: 'TSP Art', type:'checkbox', noRestart:true},
-  {label: 'Stipple type', type:'select', options:['Circles', 'Spirals', 'Hexagons', 'Pentagrams'], noRestart:true},
+  {label: 'Stipple type', type:'select', options:['Circles', 'Spirals', 'Hexagons', 'Pentagrams', 'Snowflakes'], noRestart:true},
 ])]);
 
 
@@ -54,16 +54,16 @@ function redraw(tsp){
       }
       postMessage(['points', points])
       break;
-    case 'Hexagons':
-      let s60 = Math.sin(60*Math.PI/180), c60 = 0.5 
-      for (let p in particles) {
-        let x=particles[p].x, y=particles[p].y
-        let r=getPixel(x,y)*scale + minsize 
-        let hex = [ [x+r,y], [x+r*c60,y-r*s60], [x-r*c60, y-r*s60], [x-r, y], [x-r*c60, y+r*s60], [x+r*c60,y+r*s60], [x+r,y] ]
-        points.push(hex)
-      }
-      postMessage(['points', points])
-      break;
+    case 'Hexagons': {
+        let s60 = Math.sin(60*Math.PI/180), c60 = 0.5 
+        for (let p in particles) {
+          let x=particles[p].x, y=particles[p].y
+          let r=getPixel(x,y)*scale + minsize 
+          let hex = [ [x+r,y], [x+r*c60,y-r*s60], [x-r*c60, y-r*s60], [x-r, y], [x-r*c60, y+r*s60], [x+r*c60,y+r*s60], [x+r,y] ]
+          points.push(hex)
+        }
+        postMessage(['points', points])
+      } break;
     case 'Pentagrams':
 
       let px = [], py = []
@@ -85,6 +85,17 @@ function redraw(tsp){
       }
       postMessage(['points', points ])
       break;
+    case 'Snowflakes': {
+        let s60 = Math.sin(60*Math.PI/180), c60 = 0.5 
+        for (let p in particles) {
+          let x=particles[p].x, y=particles[p].y
+          let r=getPixel(x,y)*scale + minsize 
+          points.push([ [x-r,y] , [x+r,y] ])
+          points.push([ [x+r*c60,y+r*s60] , [x-r*c60,y-r*s60] ])
+          points.push([ [x-r*c60,y+r*s60] , [x+r*c60,y-r*s60] ])
+        }
+        postMessage(['points', points])
+      } break;
     default: //circles
       for (let p in particles)
         particles[p].r=getPixel(particles[p].x,particles[p].y)*scale + minsize 
