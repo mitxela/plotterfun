@@ -27,12 +27,12 @@ onmessage = function(e) {
       let k, toggle=false, z = getPixel(x, y)
 
       // outline
-      if (z<64) continue;
+      if (z<42) continue;
       if (config.Outlines) lines.push([ [x-hm,y-hm],[x+hm,y-hm],[x+hm,y+hm],[x-hm,y+hm],[x-hm,y-hm] ])
 
 
       //horizontal hatches
-      if (z<96) continue;
+      if (z<84) continue;
       for (k=0;k<major;k+=minor) {
         if (toggle=!toggle) 
              lines.push([ [x-hm,y-hm +k],[x+hm,y-hm +k] ])
@@ -40,7 +40,7 @@ onmessage = function(e) {
       }
       
       //vertical hatches
-      if (z<128) continue;
+      if (z<126) continue;
       for (k=0;k<major;k+=minor) {
         if (toggle=!toggle) 
              lines.push([ [x-hm +k,y-hm],[x-hm +k,y+hm] ])
@@ -48,7 +48,7 @@ onmessage = function(e) {
       }
 
       //45deg hatches
-      if (z<160) continue;
+      if (z<168) continue;
       for (k=0;k<major;k+=minor) {
         if (toggle=!toggle) 
              lines.push([ [x-hm, y-hm+k],[x-hm+k, y-hm] ])
@@ -61,13 +61,12 @@ onmessage = function(e) {
       }
 
       //-45deg hatches
-      if (z<192) continue;
+      if (z<210) continue;
       for (k=0;k<major;k+=minor) {
         if (toggle=!toggle) 
              lines.push([ [x+hm, y-hm+k],[x+hm-k, y-hm] ])
         else lines.push([ [x+hm-k, y-hm],[x+hm, y-hm+k] ])
       }
-
       for (k=0;k<major;k+=minor) {
         if (toggle=!toggle) 
              lines.push([ [x-hm, y-hm+k],[x+hm-k, y+hm] ])
