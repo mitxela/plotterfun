@@ -76,6 +76,7 @@ Algorithm:
 
 <div id=msgbox></div>
 
+<script src=helpers.js></script>
 <script>
 preview=document.querySelector("canvas")
 prectx=preview.getContext("2d")
@@ -91,7 +92,9 @@ scale = 1;
 offset = [0,0]
 
 // TODO
-// upload to server option - pipe to hpgl python script or smoething
+// upload to server option - pipe to hpgl python script or something
+// vanity line
+// calculate total pen movement -> plot time estimate
 
 
 function changeSize(){
@@ -196,19 +199,22 @@ function useImage(){
   ctx.drawImage(preview, 0,0)
   process()
 }
-
+function sendToWorker(msg){
+  if (!window.onmessage) myWorker.postMessage(msg)
+  else setTimeout(()=>window.onmessage({data:msg}),10)
+}
 function process(){
   if (!imageset) return;
   [config.width, config.height] = [canvas.width, canvas.height]
   loadWorker(window.algo)
-  myWorker.postMessage([ window.config, ctx.getImageData(0,0,config.width,config.height) ]);
+  sendToWorker([ window.config, ctx.getImageData(0,0,config.width,config.height) ]);
 }
 function ctrlChange(control){
   if (!imageset) return;
   if (!control.noRestart) 
     process()
   else
-    myWorker.postMessage([ window.config ]);
+    sendToWorker([ window.config ]);
 }
 function addController(control, form){
   if (!control.type) control.type = "range"
@@ -251,10 +257,18 @@ function addController(control, form){
 
 }
 
+function appendScript(src) {
+  var script = document.createElement('script');
+  script.setAttribute('type', 'text/javascript');
+  script.setAttribute('src', src);
+  document.head.append(script);
+}
+
 function loadWorker(src){
   if (window.myWorker) myWorker.terminate()
   window.myWorker = new Worker(src);
   msgbox.innerHTML = "";
+
   myWorker.onmessage = function(msg) {
     let [type, data] = msg.data
 
@@ -290,6 +304,16 @@ function loadWorker(src){
       }
 
     } 
+  }
+  // Workers not working - fall back to embedding the script
+  myWorker.onerror=(e)=>{
+    window.importScripts=function(...args){
+      for (let a of args) appendScript(a)
+    }
+    window.postMessage=function(msg){
+      myWorker.onmessage({data:msg})
+    }
+    appendScript(src)
   }
 }
 
