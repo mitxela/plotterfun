@@ -15,10 +15,11 @@ postMessage(['sliders', defaultControls.concat([
 // top left two stipples always unstable
 // TSP termination could do with improvement
 
+(function(){
 
-let particles, config, pixData, pixelCache =[];
+var particles, config, pixData, pixelCache =[];
 onmessage = function(e) {
-  if (pixelCache.length == 0) {
+  if (!particles) {
     [ config, pixData ] = e.data;
     render()
   } else {
@@ -229,7 +230,7 @@ async function render() {
         let d = distance(particles[j], particles[i-1])
         if (d < mindist) {
           closest = j
-  	mindist=d
+          mindist=d
         }
       }
       swapParticles(i,closest)
@@ -273,9 +274,8 @@ async function render() {
     })
     postMessage(['msg', `Optimizing route... [${numSwaps.toFixed(2)}]`]);
   }
-
   redraw(config['TSP Art'])
   postMessage(['msg', "Done"]);
 }
 
-
+})();

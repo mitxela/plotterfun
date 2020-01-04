@@ -300,7 +300,7 @@ function addNoise( lines, sc ) {
 }
 
 
-let width, height, config; 
+var width, height, config; 
 onmessage = function(e) {
   [ config, pixData ] = e.data;
   if (!config.Contours && !config.Hatching) return
