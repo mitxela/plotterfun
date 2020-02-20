@@ -15,7 +15,6 @@ onmessage = function(e) {
   const lineCount = config['Line Count'];
   const sublines = config['Sublines'];
   const amplitude = config.Amplitude / sublines / lineCount;
-  const frequency = config.Frequency;
   const incr_x = config.Sampling;
   const incr_y = Math.floor(config.height / lineCount);
   let squiggleData = [];

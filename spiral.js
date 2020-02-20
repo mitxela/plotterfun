@@ -27,7 +27,6 @@ onmessage = function(e) {
   let x = cx, y = cy;
   let radius = 1;
   let theta = 0;
-  pi= 3.1415926535897;
   
   while ( x>0 && y>0 && x<config.width && y<config.height ) {
   
