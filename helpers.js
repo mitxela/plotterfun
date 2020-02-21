@@ -178,6 +178,38 @@ function autocontrast(pixData, cutoff){
 })();
 
 
+// Nearest-neighbour TSP solution, good enough for simple plotting
+function sortlines(clines){
+  let slines = [clines.pop()]
+  let last = slines[0][slines[0].length-1]
+
+  function distance(a,b) {
+    return (a[0]-b[0])*(a[0]-b[0])+(a[1]-b[1])*(a[1]-b[1])
+  }
+
+  while (clines.length) {
+    let closest, min = 1e9, backwards=false
+    for (let j in clines) {
+      let d1 = distance( clines[j][0], last )
+      let d2 = distance( clines[j][ clines[j].length-1 ], last )
+      if (d1<min) {
+        min=d1, closest=j, backwards=false
+      }
+      if (d2<min) {
+        min=d2, closest=j, backwards=true
+      }
+    }
+    let l = clines.splice(closest,1)[0]
+    if (backwards) {
+      l.reverse()
+    }
+    slines=slines.concat([l])
+    last = l[l.length-1]
+  }
+  return slines
+}
+
+
 // slowly draw the points list - useful for debugging
 function animatePointList(output){
   let out=[],i=0,j=0;
