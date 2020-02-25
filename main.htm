@@ -8,18 +8,18 @@ input[type=number]{width:50px}
 #sidebar {width:300px;background:#ddf}
 video{max-width:100%;transform:scaleX(-1)}
 canvas{max-width:100%; max-height:320px}
-svg{position:fixed; left:320px; top:10px;}
+svg{position:fixed; left:320px; top:10px}
 form{padding:5px; line-height:2em}
 #msgbox{position:fixed; left:320px; bottom:20px; padding:6px}
-#msgbox:not(:empty) {background:rgba(255,255,255,0.8); }
+#msgbox:not(:empty) {background:rgba(255,255,255,0.8)}
 #webcam{display:none}
 button{cursor:pointer; border:0;padding:5px 10px;background:#aaa; margin:0 20px}
 #tabbar {background:#ccc;}
 #tabbar button{margin:0}
-button{background:#ccc;outline:none;font-weight:bold;color:#333;}
+button{background:#ccc;outline:none;font-weight:bold;color:#333}
 button:hover{background:#666 !important;color:#fff}
 #tabbar button.active{background:#999}
-#imgselect,#webcam {text-align:justify;text-align-last:justify;}
+#imgselect,#webcam {text-align:justify;text-align-last:justify}
 #algoSelect{background:#eee;margin:5px 0}
 canvas{ /* checkerboard pattern */ 
   background-color: #f8f8f8;
@@ -99,7 +99,6 @@ offset = [0,0]
 // upload to server option - pipe to hpgl python script or something
 // vanity line
 // calculate total pen movement -> plot time estimate
-// allow proper scrolling when window is too small
 
 
 function changeSize(){
@@ -108,8 +107,14 @@ function changeSize(){
   preview.width=cw
   preview.height=ch
   draw()
+  checkScroll()
 }
 changeSize()
+
+function checkScroll(){
+  svg.style.position= (window.innerWidth < cw+320 || window.innerHeight < ch+10) ? "absolute" : "fixed";
+}
+window.onresize=checkScroll; checkScroll()
 
 function tabImage(){
   if (video.srcObject && video.srcObject.getTracks().length) video.srcObject.getTracks()[0].stop()
