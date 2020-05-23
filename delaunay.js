@@ -12,7 +12,7 @@ postMessage(['sliders', defaultControls.concat([
 (function(){
 
 var particles, config, pixData, pixelCache =[];
-var diagram=null, finished=false;
+var diagram=null;
 
 onmessage = function(e) {
   if (!particles) {
@@ -31,20 +31,19 @@ function makeAsync(f) {
 function getPixel(x,y){
   return pixelCache[Math.floor(x)][Math.floor(y)]
 }
-function redraw(tsp){
-
-  if (!finished && config['No preview (faster)']){
-    return
-  }
+function triangulate(){
   let delaunay = [];
-
   for (let e in diagram.edges) {
     if (diagram.edges[e].lSite && diagram.edges[e].rSite) {
       let l = diagram.edges[e].lSite.voronoiId, r = diagram.edges[e].rSite.voronoiId;
       delaunay.push([ [particles[l].x, particles[l].y] , [particles[r].x, particles[r].y] ]);
     }
-  }  
-  postMessage(['points', delaunay]) 
+  }
+  return delaunay
+}
+function redraw(tsp){
+  if (!config['No preview (faster)'])
+    postMessage(['points', triangulate()]) 
 }
 
 async function render() {
@@ -158,16 +157,12 @@ async function render() {
 
   postMessage(['msg', "Route optimization"]);
 
+  let lines = triangulate()
 
-/*  await makeAsync(()=>{
-
-    sortlines()
-
+  await makeAsync(()=>{
+    lines = sortlines(lines)
   })
-*/
-
-  finished=true
-  redraw()
+  postMessage(['points', lines]);
   postMessage(['msg', "Done"]);
 }
 
