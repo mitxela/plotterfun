@@ -112,7 +112,7 @@ function changeSize(){
 changeSize()
 
 function checkScroll(){
-  svg.style.position= (window.innerWidth < cw+320 || window.innerHeight < ch+10) ? "absolute" : "fixed";
+  svg.style.position= (window.innerWidth < canvas.width+320 || window.innerHeight < canvas.height+10) ? "absolute" : "fixed";
 }
 window.onresize=checkScroll; checkScroll()
 
@@ -198,6 +198,7 @@ function snapshot(){
   // config width height should come from sliders maybe?
   [canvas.width, canvas.height] = [video.videoWidth, video.videoHeight];
   ctx.drawImage(video, 0, 0)
+  checkScroll()
   process()
 }
 function useImage(){
@@ -207,6 +208,7 @@ function useImage(){
   ctx.fillStyle='#fff'
   ctx.fillRect(0,0,cw,ch)
   ctx.drawImage(preview, 0,0)
+  checkScroll()
   process()
 }
 function sendToWorker(msg){
