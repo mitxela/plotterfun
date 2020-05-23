@@ -301,6 +301,10 @@ function loadWorker(src){
       window.data = data
       console.log(data) 
 
+    }else if (type == 'svg-path'){
+      resetSVG()
+      addPath(data)
+
     // vector data result
     } else {
       resetSVG()

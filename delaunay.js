@@ -1,11 +1,9 @@
-importScripts('/helpers.js', 'external/rhill-voronoi-core.min.js', 'external/stackblur.min.js')
+importScripts('helpers.js', 'external/rhill-voronoi-core.min.js', 'external/stackblur.min.js')
 
 postMessage(['sliders', defaultControls.concat([
   {label: 'Max Stipples', value: 2000, min: 500, max: 10000},
   {label: 'Max Iterations', value: 30, min:2, max:200},
-  {label: 'Spread', value: 0, min:0, max:100},
-  {label: 'No preview (faster)', type:'checkbox', checked:true, noRestart:true},
-
+  {label: 'Spread', value: 10, min:0, max:100},
 ])]);
 
 
@@ -42,8 +40,7 @@ function triangulate(){
   return delaunay
 }
 function redraw(tsp){
-  if (!config['No preview (faster)'])
-    postMessage(['points', triangulate()]) 
+  postMessage(['svg-path', pointsToSvgPath(triangulate())]) 
 }
 
 async function render() {
@@ -162,7 +159,7 @@ async function render() {
   await makeAsync(()=>{
     lines = sortlines(lines)
   })
-  postMessage(['points', lines]);
+  postMessage(['svg-path', pointsToSvgPath(lines)]);
   postMessage(['msg', "Done"]);
 }
 
