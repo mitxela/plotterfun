@@ -308,8 +308,20 @@ function loadWorker(src){
         // either a list of points, or a list of lists of points
         if (typeof data[0][0] !== "object") data = [data]
 
-        if (data[0][0].x) data.forEach(addPathNamed)
-        else data.forEach(addPathArray)
+        let pathstring="";
+
+        if (data[0][0].x) {
+          for (let p in data) {
+            pathstring += ' M'+data[p][0].x.toFixed(2)+','+data[p][0].y.toFixed(2);
+            for (let i=1;i<data[p].length;i++) pathstring+='L'+data[p][i].x.toFixed(2)+','+data[p][i].y.toFixed(2);
+          }
+        } else {
+          for (let p in data) {
+            pathstring += ' M'+data[p][0][0].toFixed(2)+','+data[p][0][1].toFixed(2);
+            for (let i=1;i<data[p].length;i++) pathstring+='L'+data[p][i][0].toFixed(2)+','+data[p][i][1].toFixed(2);
+          }
+        }
+        addPath(pathstring)
 
       } else if (type == 'circles') {
         if (data[0].x) data.forEach(addCircleNamed)
@@ -338,16 +350,6 @@ function resetSVG(){
   svg.setAttribute("height",config.height)
   svg.setAttribute("viewbox", `0 0 ${config.width} ${config.height}`)
   svg.style.background=config.Inverted?"black":"white";
-}
-function addPathNamed(points){
-  var pathstring = `M${points[0].x.toFixed(2)},${points[0].y.toFixed(2)} `;
-  for (let i=1;i<points.length;i++) pathstring+=`L${points[i].x.toFixed(2)},${points[i].y.toFixed(2)}`;
-  addPath(pathstring)
-}
-function addPathArray(points){
-  var pathstring = `M${points[0][0].toFixed(2)},${points[0][1].toFixed(2)} `;
-  for (let i=1;i<points.length;i++) pathstring+=`L${points[i][0].toFixed(2)},${points[i][1].toFixed(2)}`;
-  addPath(pathstring)
 }
 function addPath(pathstring){
   var p=document.createElementNS(svgNS, "path");
