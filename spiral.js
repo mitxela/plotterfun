@@ -49,7 +49,7 @@ onmessage = function(e) {
   }
 
 
-  postMessage(['points', points]);
+  postLines(points);
 }
 
 

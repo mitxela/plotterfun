@@ -79,6 +79,6 @@ onmessage = function(e) {
   
 
 
-  postMessage(['points', output]);
+  postLines(output);
 }
 

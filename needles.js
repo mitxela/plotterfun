@@ -36,7 +36,7 @@ onmessage = function(e) {
     output = sortlines(output)
   }
 
-  postMessage(['points', output])
+  postLines(output)
   postMessage(['msg', "Done"]);
 }
 

@@ -37,7 +37,7 @@ function getPixel(x,y){
 }
 function redraw(tsp){
   if (tsp) {
-    postMessage(['points', particles])
+    postLines(particles)
   } else {
     let minsize = config['Min dot size'], scale = config['Dot size range']/255;
 
@@ -53,7 +53,7 @@ function redraw(tsp){
         }
         points.push(spiral)
       }
-      postMessage(['points', points])
+      postLines(points)
       break;
     case 'Hexagons': {
         let s60 = Math.sin(60*Math.PI/180), c60 = 0.5 
@@ -63,7 +63,7 @@ function redraw(tsp){
           let hex = [ [x+r,y], [x+r*c60,y-r*s60], [x-r*c60, y-r*s60], [x-r, y], [x-r*c60, y+r*s60], [x+r*c60,y+r*s60], [x+r,y] ]
           points.push(hex)
         }
-        postMessage(['points', points])
+        postLines(points)
       } break;
     case 'Pentagrams':
 
@@ -84,7 +84,7 @@ function redraw(tsp){
            [x+r*px[0],y+r*py[0]], 
         ])
       }
-      postMessage(['points', points ])
+      postLines(points)
       break;
     case 'Snowflakes': {
         let s60 = Math.sin(60*Math.PI/180), c60 = 0.5 
@@ -95,12 +95,12 @@ function redraw(tsp){
           points.push([ [x+r*c60,y+r*s60] , [x-r*c60,y-r*s60] ])
           points.push([ [x-r*c60,y+r*s60] , [x+r*c60,y-r*s60] ])
         }
-        postMessage(['points', points])
+        postLines(points)
       } break;
     default: //circles
       for (let p in particles)
         particles[p].r=getPixel(particles[p].x,particles[p].y)*scale + minsize 
-      postMessage(['svg-path', circlesToSvgPath(particles)])
+      postCircles(particles)
     }
   }
 }

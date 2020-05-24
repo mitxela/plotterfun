@@ -45,6 +45,6 @@ onmessage = function(e) {
       squiggleData.push(currentLine)
   }
 
-  postMessage(['points', squiggleData]);
+  postLines(squiggleData);
 }
 

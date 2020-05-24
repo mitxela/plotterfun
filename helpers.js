@@ -218,14 +218,16 @@ function animatePointList(output){
     out[i][j] = output[i][j]
     if (++j>=output[i].length) j=0,i++
   
-    postMessage(['points',out])
+    postLines(out)
     if (i<output.length) setTimeout(f,20)
   })();
 }
 
 
-function pointsToSvgPath(data){
+function postLines(data){
   let pathstring="";
+
+  // either a list of points, or a list of lists of points
   if (typeof data[0][0] !== "object") data = [data] 
 
   if (data[0][0].x) {
@@ -239,22 +241,22 @@ function pointsToSvgPath(data){
       for (let i=1;i<data[p].length;i++) pathstring+='L'+data[p][i][0].toFixed(2)+','+data[p][i][1].toFixed(2);
     }
   }
-  return pathstring
+  postMessage(['svg-path',pathstring])
 }
 
-function circlesToSvgPath(data){
+function postCircles(data){
   let pathstring = ""
   if (data[0].x) {
     for (let p in data) {
       let {x,y,r}=data[p];
-      pathstring += 'M'+x.toFixed(2)+','+(y-r).toFixed(2) +' a '+r+' '+r+' 0 1 0 -0.001 0Z ';
+      pathstring += 'M'+x.toFixed(2)+','+(y-r).toFixed(2) +' a '+r+' '+r+' 0 1 0 0.001 0Z ';
     }
   } else {
     for (let p in data) {
       let [x,y,r]=data[p];
-      pathstring += 'M'+x.toFixed(2)+','+(y-r).toFixed(2) +' a '+r+' '+r+' 0 1 0 -0.001 0Z ';
+      pathstring += 'M'+x.toFixed(2)+','+(y-r).toFixed(2) +' a '+r+' '+r+' 0 1 0 0.001 0Z ';
     }
   }
-  return pathstring
+  postMessage(['svg-path',pathstring])
 }
 

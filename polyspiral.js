@@ -50,6 +50,6 @@ onmessage = function(e) {
     y += config.Spacing*Math.sin(theta)
   }
 
-  postMessage(['points', points]);
+  postLines(points);
 }
 

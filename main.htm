@@ -301,49 +301,10 @@ function loadWorker(src){
       window.data = data
       console.log(data) 
 
+    // vector data result
     }else if (type == 'svg-path'){
       resetSVG()
       addPath(data)
-
-    // vector data result
-    } else {
-      resetSVG()
-      if (type == 'points') {
-        // either a list of points, or a list of lists of points
-        if (typeof data[0][0] !== "object") data = [data]
-
-        let pathstring="";
-
-        if (data[0][0].x) {
-          for (let p in data) {
-            pathstring += ' M'+data[p][0].x.toFixed(2)+','+data[p][0].y.toFixed(2);
-            for (let i=1;i<data[p].length;i++) pathstring+='L'+data[p][i].x.toFixed(2)+','+data[p][i].y.toFixed(2);
-          }
-        } else {
-          for (let p in data) {
-            pathstring += ' M'+data[p][0][0].toFixed(2)+','+data[p][0][1].toFixed(2);
-            for (let i=1;i<data[p].length;i++) pathstring+='L'+data[p][i][0].toFixed(2)+','+data[p][i][1].toFixed(2);
-          }
-        }
-        addPath(pathstring)
-
-      } else if (type == 'circles') {
-        let pathstring = ""
-
-        if (data[0].x) {
-          for (let p in data) {
-            let {x,y,r}=data[p];
-            pathstring += 'M'+x.toFixed(2)+','+(y-r).toFixed(2) +' a '+r+' '+r+' 0 1 0 0.001 0Z ';
-          }
-        } else {
-          for (let p in data) {
-            let [x,y,r]=data[p];
-            pathstring += 'M'+x.toFixed(2)+','+(y-r).toFixed(2) +' a '+r+' '+r+' 0 1 0 0.001 0Z ';
-          }
-        }
-        addPath(pathstring)
-      }
-
     } 
   }
   // Workers not working - fall back to embedding the script
@@ -371,15 +332,6 @@ function addPath(pathstring){
   var p=document.createElementNS(svgNS, "path");
   p.setAttributeNS(null, "style", "stroke-width: 2px; fill: none; stroke: " + (config.Inverted?"white":"black"))
   p.setAttributeNS(null, "d", pathstring) 
-  svg.appendChild(p)
-}
-function addCircleNamed(d) { addCircleArray([d.x,d.y,d.r])}
-function addCircleArray(d){
-  var p=document.createElementNS(svgNS, "circle");
-  p.setAttributeNS(null, "style", "fill: " + (config.Inverted?"white":"black"))
-  p.setAttributeNS(null, "cx", d[0]) 
-  p.setAttributeNS(null, "cy", d[1]) 
-  p.setAttributeNS(null, "r",  d[2]) 
   svg.appendChild(p)
 }
 

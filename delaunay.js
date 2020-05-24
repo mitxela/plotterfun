@@ -40,7 +40,7 @@ function triangulate(){
   return delaunay
 }
 function redraw(tsp){
-  postMessage(['svg-path', pointsToSvgPath(triangulate())]) 
+  postLines(triangulate())
 }
 
 async function render() {
@@ -159,7 +159,7 @@ async function render() {
   await makeAsync(()=>{
     lines = sortlines(lines)
   })
-  postMessage(['svg-path', pointsToSvgPath(lines)]);
+  postLines(lines)
   postMessage(['msg', "Done"]);
 }
 
