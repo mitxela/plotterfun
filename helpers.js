@@ -242,3 +242,19 @@ function pointsToSvgPath(data){
   return pathstring
 }
 
+function circlesToSvgPath(data){
+  let pathstring = ""
+  if (data[0].x) {
+    for (let p in data) {
+      let {x,y,r}=data[p];
+      pathstring += 'M'+x.toFixed(2)+','+(y-r).toFixed(2) +' a '+r+' '+r+' 0 1 0 -0.001 0Z ';
+    }
+  } else {
+    for (let p in data) {
+      let [x,y,r]=data[p];
+      pathstring += 'M'+x.toFixed(2)+','+(y-r).toFixed(2) +' a '+r+' '+r+' 0 1 0 -0.001 0Z ';
+    }
+  }
+  return pathstring
+}
+

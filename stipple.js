@@ -100,7 +100,7 @@ function redraw(tsp){
     default: //circles
       for (let p in particles)
         particles[p].r=getPixel(particles[p].x,particles[p].y)*scale + minsize 
-      postMessage(['circles', particles])
+      postMessage(['svg-path', circlesToSvgPath(particles)])
     }
   }
 }
