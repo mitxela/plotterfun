@@ -2,7 +2,7 @@ importScripts('helpers.js')
 
 postMessage(['sliders', defaultControls.concat([
   {label: 'Angle', value: 0, min: 0, max: 360},
-  {label: 'Amplitude', value: 5, min: 0.1, max: 20, step: 0.1},
+  {label: 'Step size', value: 5, min: 1, max: 20, step: 0.1},
 ])]);
 
 
@@ -13,7 +13,7 @@ onmessage = function(e) {
   const pi=Math.PI
   const cos = Math.cos(config.Angle/180*pi) 
   const sin = Math.sin(config.Angle/180*pi) 
-  const a = config.Amplitude
+  const a = config['Step size']
   const w = config.width
   const h = config.height
   const L = Math.sqrt(w*w+h*h)
