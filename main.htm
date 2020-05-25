@@ -280,29 +280,22 @@ function appendScript(src) {
   document.head.append(script);
 }
 
-function failedWorkerFallback(src){
-  console.log('Workers not working - fall back to embedding the script')
-  window.importScripts=function(...args){
-    for (let a of args) appendScript(a)
-  }
-  window.postMessage=function(msg){
-    myWorker.onmessage({data:msg})
-  }
-  appendScript(src)
-}
-
 function loadWorker(src){
   buffering.style.display='inline-block'
   if (window.myWorker) myWorker.terminate()
 
-  try {window.myWorker = new Worker(src)} catch(e){
+  if (window.location.protocol == 'file:') {
+    // Workers not working - fall back to embedding the script
     window.myWorker={terminate:()=>{}}
-    failedWorkerFallback(src)
-  }
-  myWorker.onerror=(e)=>{
-    console.log("Worker error!",e)
-    if (!e.lineno) failedWorkerFallback(src)
-  }
+    window.importScripts=function(...args){
+      for (let a of args) appendScript(a)
+    }
+    window.postMessage=function(msg){
+      myWorker.onmessage({data:msg})
+    }
+    appendScript(src)
+
+  } else window.myWorker = new Worker(src);
 
   msgbox.innerHTML = "";
 
