@@ -73,6 +73,7 @@ Algorithm:
 <option value=waves.js>Waves</option>
 <option value=needles.js>Needles</option>
 </select>
+<img id=buffering src=loading.gif style='vertical-align:middle; display:none'>
 </form>
 <form id=algoParams></form>
 
@@ -280,6 +281,7 @@ function appendScript(src) {
 }
 
 function loadWorker(src){
+  buffering.style.display='inline-block'
   if (window.myWorker) myWorker.terminate()
   window.myWorker = new Worker(src);
   msgbox.innerHTML = "";
@@ -289,6 +291,7 @@ function loadWorker(src){
 
     // setup, declare parameters
     if (type == 'sliders') {
+      buffering.style.display='none'
       if (src==window.algo) return;
       window.algo=src
       algoParams.innerHTML="";
