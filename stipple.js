@@ -12,7 +12,6 @@ postMessage(['sliders', defaultControls.concat([
 
 // TODO
 // noRestart on max iterations change?
-// top left two stipples always unstable
 // TSP termination could do with improvement
 
 (function(){
@@ -160,7 +159,7 @@ async function render() {
           ex = v.x
           ey = v.y
           dx = (ex-sx) / (ey-sy)
-          if (sy == sx) {
+          if (sy == ey) {
             edgePixels.push([Math.round(sx),Math.round(sy)])
           } else if (sy<ey) {
             while (sy < ey) {

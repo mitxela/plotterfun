@@ -101,7 +101,7 @@ async function render() {
           ex = v.x
           ey = v.y
           dx = (ex-sx) / (ey-sy)
-          if (sy == sx) {
+          if (sy == ey) {
             edgePixels.push([Math.round(sx),Math.round(sy)])
           } else if (sy<ey) {
             while (sy < ey) {
