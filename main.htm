@@ -280,10 +280,30 @@ function appendScript(src) {
   document.head.append(script);
 }
 
+function failedWorkerFallback(src){
+  console.log('Workers not working - fall back to embedding the script')
+  window.importScripts=function(...args){
+    for (let a of args) appendScript(a)
+  }
+  window.postMessage=function(msg){
+    myWorker.onmessage({data:msg})
+  }
+  appendScript(src)
+}
+
 function loadWorker(src){
   buffering.style.display='inline-block'
   if (window.myWorker) myWorker.terminate()
-  window.myWorker = new Worker(src);
+
+  try {window.myWorker = new Worker(src)} catch(e){
+    window.myWorker={terminate:()=>{}}
+    failedWorkerFallback(src)
+  }
+  myWorker.onerror=(e)=>{
+    console.log("Worker error!",e)
+    if (!e.lineno) failedWorkerFallback(src)
+  }
+
   msgbox.innerHTML = "";
 
   myWorker.onmessage = function(msg) {
@@ -311,16 +331,6 @@ function loadWorker(src){
       resetSVG()
       addPath(data)
     } 
-  }
-  // Workers not working - fall back to embedding the script
-  myWorker.onerror=(e)=>{
-    window.importScripts=function(...args){
-      for (let a of args) appendScript(a)
-    }
-    window.postMessage=function(msg){
-      myWorker.onmessage({data:msg})
-    }
-    appendScript(src)
   }
 }
 
