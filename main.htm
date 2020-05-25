@@ -2,10 +2,11 @@
 <style>
 *{font-family:sans-serif}
 h2{padding:10px;margin:0}
-input~input[type=text] {width:40px}
-input[type=checkbox]{vertical-align:-10%;margin:0px 5px}
+input~input[type=text] {width:40px; border:1px solid #999;vertical-align:3px}
+input[type=checkbox]{vertical-align:-5%;margin:0px 5px}
 input[type=number]{width:50px}
-#sidebar {width:300px;background:#ddf}
+label:hover{color:#4a6071}
+#sidebar {width:300px;background:#dfedf7}
 video{max-width:100%;transform:scaleX(-1)}
 canvas{max-width:100%; max-height:320px}
 svg{position:fixed; left:320px; top:10px}
@@ -13,14 +14,14 @@ form{padding:5px; line-height:2em}
 #msgbox{position:fixed; left:320px; bottom:20px; padding:6px}
 #msgbox:not(:empty) {background:rgba(255,255,255,0.8)}
 #webcam{display:none}
-button{cursor:pointer; border:0;padding:5px 10px;background:#aaa; margin:0 20px}
-#tabbar {background:#ccc;}
+button{cursor:pointer; border:0;padding:5px 10px;margin:0 20px}
+#tabbar {background:#c3d7e5;}
 #tabbar button{margin:0}
-button{background:#ccc;outline:none;font-weight:bold;color:#333}
-button:hover{background:#666 !important;color:#fff}
-#tabbar button.active{background:#999}
+button{background:#c3d7e5;outline:none;font-weight:bold;color:#2f404d}
+button:hover{background:#5d90bc !important;color:#fff}
+#tabbar button.active{background:#99afbf}
 #imgselect,#webcam {text-align:justify;text-align-last:justify}
-#algoSelect{background:#eee;margin:5px 0}
+#algoSelect{background:#d2e4f0;margin:5px 0;border:solid #5d90bc;border-width:2px 0 2px 0}
 canvas{ /* checkerboard pattern */ 
   background-color: #f8f8f8;
   background-image: 
@@ -30,6 +31,7 @@ canvas{ /* checkerboard pattern */
   background-position: 0 0, 20px 20px;
 }
 </style>
+<link rel=stylesheet href=range.css>
 
 <div id=sidebar>
 
