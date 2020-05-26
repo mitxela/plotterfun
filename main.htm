@@ -177,11 +177,12 @@ preview.onmousedown=function(e){
   }
   return false
 }
-preview.onwheel=function(e){
+preview.addEventListener("wheel", function(e){
+  e.preventDefault();
+  e.stopPropagation();
   scale *= e.deltaY>0 ?1.1:0.9;
   draw()
-  return false;
-}
+},{passive:false});
 
 function tabWebcam(){
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
