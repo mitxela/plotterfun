@@ -249,12 +249,12 @@ function postCircles(data){
   if (data[0].x) {
     for (let p in data) {
       let {x,y,r}=data[p];
-      pathstring += 'M'+x.toFixed(2)+','+(y-r).toFixed(2) +' a '+r+' '+r+' 0 1 0 0.001 0Z ';
+      pathstring += 'M'+x.toFixed(2)+','+(y-r).toFixed(2) +' a '+r.toFixed(3)+' '+r.toFixed(3)+' 0 1 0 0.001 0Z ';
     }
   } else {
     for (let p in data) {
       let [x,y,r]=data[p];
-      pathstring += 'M'+x.toFixed(2)+','+(y-r).toFixed(2) +' a '+r+' '+r+' 0 1 0 0.001 0Z ';
+      pathstring += 'M'+x.toFixed(2)+','+(y-r).toFixed(2) +' a '+r.toFixed(3)+' '+r.toFixed(3)+' 0 1 0 0.001 0Z ';
     }
   }
   postMessage(['svg-path',pathstring])

@@ -105,6 +105,11 @@ offset = [0,0]
 // calculate total pen movement -> plot time estimate
 
 
+function checkScroll(){
+  svg.style.position= (window.innerWidth < canvas.width+320 || window.innerHeight < canvas.height+10) ? "absolute" : "fixed";
+}
+window.onresize=checkScroll;
+
 function changeSize(){
   cw = parseInt(pcw.value)
   ch = parseInt(pch.value)
@@ -114,11 +119,6 @@ function changeSize(){
   checkScroll()
 }
 changeSize()
-
-function checkScroll(){
-  svg.style.position= (window.innerWidth < canvas.width+320 || window.innerHeight < canvas.height+10) ? "absolute" : "fixed";
-}
-window.onresize=checkScroll; checkScroll()
 
 function tabImage(){
   if (video.srcObject && video.srcObject.getTracks().length) video.srcObject.getTracks()[0].stop()
@@ -194,7 +194,7 @@ function tabWebcam(){
       imgselect.style.display='none'
       tab2.className='active'
       tab1.className=''
-    }).catch(function(e){console.log(e); alert("error opening webcam")});
+    }).catch((e)=>alert("error opening webcam"));
 }
 
 var imageset = false;
@@ -223,6 +223,7 @@ function sendToWorker(msg){
 function process(){
   if (!imageset) return;
   [config.width, config.height] = [canvas.width, canvas.height]
+  resetSVG()
   loadWorker(window.algo)
   sendToWorker([ window.config, ctx.getImageData(0,0,config.width,config.height) ]);
 }
@@ -322,8 +323,7 @@ function loadWorker(src){
 
     // vector data result
     }else if (type == 'svg-path'){
-      resetSVG()
-      addPath(data)
+      mainpath.setAttributeNS(null, "d", data) 
     } 
   }
 }
@@ -336,12 +336,9 @@ function resetSVG(){
   svg.setAttribute("height",config.height)
   svg.setAttribute("viewbox", `0 0 ${config.width} ${config.height}`)
   svg.style.background=config.Inverted?"black":"white";
-}
-function addPath(pathstring){
-  var p=document.createElementNS(svgNS, "path");
-  p.setAttributeNS(null, "style", "stroke-width: 2px; fill: none; stroke: " + (config.Inverted?"white":"black"))
-  p.setAttributeNS(null, "d", pathstring) 
-  svg.appendChild(p)
+  window.mainpath=document.createElementNS(svgNS, "path");
+  mainpath.setAttributeNS(null, "style", "stroke-width: 2px; fill: none; stroke: " + (config.Inverted?"white":"black"))
+  svg.appendChild(mainpath)
 }
 
 function download(){
