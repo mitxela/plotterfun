@@ -180,7 +180,10 @@ preview.onmousedown=function(e){
 preview.addEventListener("wheel", function(e){
   e.preventDefault();
   e.stopPropagation();
+  let os = scale
   scale *= e.deltaY>0 ?1.1:0.9;
+  offset[0] = ((offset[0] -cw/2)/os)*scale +cw/2
+  offset[1] = ((offset[1] -ch/2)/os)*scale +ch/2
   draw()
 },{passive:false});
 
