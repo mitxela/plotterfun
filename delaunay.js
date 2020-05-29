@@ -3,7 +3,8 @@ importScripts('helpers.js', 'external/rhill-voronoi-core.min.js', 'external/stac
 postMessage(['sliders', defaultControls.concat([
   {label: 'Max Stipples', value: 2000, min: 500, max: 10000},
   {label: 'Max Iterations', value: 30, min:2, max:200},
-  {label: 'Spread', value: 10, min:0, max:100},
+  {label: 'Spread', value: 0, min:0, max:100},
+  {label: 'Gamma', value: 2, min:0, max:10, step:0.01},
 ])]);
 
 
@@ -50,11 +51,13 @@ async function render() {
   const getPixelSlow = pixelProcessor(config, pixData)
 
   const decr = (config['Spread']/5000)
+  const gamma = config.Gamma
+  const gammaNorm = 255/Math.pow(255, gamma)
 
   for (let x=0;x<config.width;x++) {
     pixelCache[x]=[]
     for (let y=0;y<config.height;y++)
-      pixelCache[x][y] = getPixelSlow(x,y) * (1-decr) + decr*255;
+      pixelCache[x][y] = gammaNorm*Math.pow(getPixelSlow(x,y), gamma) * (1-decr) + decr*255;
   }
 
   const maxParticles = config['Max Stipples'] 
