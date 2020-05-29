@@ -359,6 +359,19 @@ function download(){
   document.body.removeChild(downloadLink);
 }
 
+function calculatePlotTime(){
+  if (!window.mainpath) return
+  // Replace all but the first move command with a line. Remove Z commands used by circles (negligible anyway)
+  let ps = mainpath.getAttributeNS(null,"d").replace(/M/g,'L').replace('L','M').replace(/Z/g,'');
+  let r = document.createElementNS(svgNS, "path")
+  r.setAttributeNS(null, "d",ps)
+  //r.setAttributeNS(null, "style", "stroke-width:1px; fill:none; stroke:red")
+  //svg.appendChild(r)
+  let len = r.getTotalLength() * (25.4/96.0)
+  console.log(`Assuming 96DPI (image ${(config.width*25.4/96).toFixed(1)}mm by ${(config.height*25.4/96).toFixed(1)}mm), total movement is ${len.toFixed(1)}mm`)
+  console.log(`At 400mm/s this would take ${(len/400).toFixed(1)} seconds`)
+}
+
 algorithm.onchange()
 
 
