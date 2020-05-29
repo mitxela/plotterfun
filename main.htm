@@ -252,13 +252,15 @@ function addController(control, form){
     s = document.createElement('select')
     s.oninput=e=>{config[control.label] = s.value; ctrlChange(control)}
     for (let i in control.options) {
-      s.append(new Option( control.options[i], control.options[i], i==0, i==0 ))
+      let selected = control.options[i]==config[control.label]
+      s.append(new Option( control.options[i], control.options[i], selected, selected ))
     }
     l.append(control.label+': ')
     l.append(s)
     form.append(l)
     return
   } else if (control.type=='checkbox') {
+    s.checked=control.value
     s.oninput=e=>{config[control.label] = s.checked; ctrlChange(control)}
     config[control.label] = s.checked
     l.append(s)  
