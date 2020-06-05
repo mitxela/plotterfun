@@ -211,13 +211,15 @@ function sortlines(clines){
 
 
 // slowly draw the points list - useful for debugging
-function animatePointList(output){
+function animatePointList(output, speed){
   let out=[],i=0,j=0;
+  speed = speed || 1;
   (function f(){
-    if (!out[i]) out[i]=[]
-    out[i][j] = output[i][j]
-    if (++j>=output[i].length) j=0,i++
-  
+    for (let q=0;q<speed;q++) {
+      if (!out[i]) out[i]=[]
+      out[i][j] = output[i][j]
+      if (++j>=output[i].length) j=0,i++
+    }
     postLines(out)
     if (i<output.length) setTimeout(f,20)
   })();
