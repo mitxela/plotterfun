@@ -191,7 +191,7 @@ function tabWebcam(){
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     alert("could not open webcam");
   } else 
-    navigator.mediaDevices.getUserMedia({video: true}).then(function(v) {
+    navigator.mediaDevices.getUserMedia({video: {width:800}}).then(function(v) {
       video.srcObject = v;
       webcam.style.display='block'
       imgselect.style.display='none'
