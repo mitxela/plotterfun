@@ -245,8 +245,10 @@ function addController(control, form){
   let p = document.createElement('div')
 
   // Don't reset values when reloading controls with same name
-  if (config[control.label]) control.value = config[control.label];
-  else config[control.label] = control.value;
+  if (control.type !='checkbox'){
+    if (config[control.label]) control.value = config[control.label];
+    else config[control.label] = control.value;
+  }
 
   if (control.type=='select') {
     s = document.createElement('select')
@@ -260,7 +262,7 @@ function addController(control, form){
     form.append(l)
     return
   } else if (control.type=='checkbox') {
-    s.checked=control.value
+    if (config[control.label]!==undefined) s.checked = config[control.label]
     s.oninput=e=>{config[control.label] = s.checked; ctrlChange(control)}
     config[control.label] = s.checked
     l.append(s)  
