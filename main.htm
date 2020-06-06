@@ -281,6 +281,11 @@ function addController(control, form){
     n.pattern="\-?[0-9]+\.?[0-9]*"
     s.oninput=e=>{config[control.label] = Number( n.value = s.value ); ctrlChange(control)}
     n.oninput=e=>{config[control.label] = Number( s.value = n.value ); ctrlChange(control)}
+    n.onkeydown=function(e){
+      if (e.keyCode!=38 && e.keyCode!=40) return;
+      n.value = parseFloat(n.value) + (e.keyCode==38?1:-1) * (control.step || 1)
+      n.oninput()
+    };
     s.value = n.value = config[control.label] //.assign already set value, but value has to be set after min/max are set
     p.append(s);
     p.append(n)
