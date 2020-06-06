@@ -109,9 +109,9 @@ scale = 1;
 offset = [0,0]
 
 // TODO
-// upload to server option - pipe to hpgl python script or something
-// vanity line
-// calculate total pen movement -> plot time estimate
+// Allow editing path display style
+// "Animate" button
+// plot time estimate
 
 
 function checkScroll(){
@@ -284,6 +284,11 @@ function addController(control, form){
     n.onkeydown=function(e){
       if (e.keyCode!=38 && e.keyCode!=40) return;
       n.value = parseFloat(n.value) + (e.keyCode==38?1:-1) * (control.step || 1)
+
+      // avoid floating point errors like 1.0000001 when step is fractional
+      if (control.step && control.step != Math.round(control.step))
+        n.value = parseFloat( (n.value*1).toFixed( control.step.toString().split('.')[1].length ) )
+
       n.oninput()
     };
     s.value = n.value = config[control.label] //.assign already set value, but value has to be set after min/max are set
