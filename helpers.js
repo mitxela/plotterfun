@@ -1,16 +1,19 @@
+
 defaultControls = [
   {label: 'Inverted', type:'checkbox'},
   {label: 'Brightness', value: 0, min: -100, max: 100},
   {label: 'Contrast', value: 0, min: -100, max: 100},
   {label: 'Min brightness', value: 0, min: 0, max: 255},
   {label: 'Max brightness', value: 255, min: 0, max: 255},
+  {label: 'Blur radius', value: 0, min: 0, max: 50}
 ]
-
 
 // Apply brightness / contrast and flatten to monochrome
 // taken from squigglecam
 
 function pixelProcessor(config, imagePixels){
+  
+  importScripts('external/stackblur.min.js')
 
   const width = parseInt(config.width);
   const contrast = parseInt(config.Contrast);
@@ -19,7 +22,12 @@ function pixelProcessor(config, imagePixels){
   const maxBrightness = parseInt(config['Max brightness']);
   const black = config.Inverted;
   let contrastFactor = (259 * (contrast + 255)) / (255 * (259 - contrast));
-
+  const blurRadius = parseInt(config['Blur radius']);
+  console.log(blurRadius);
+  if(blurRadius!=0){
+    console.log("blurring");
+    StackBlur.imageDataRGB(imagePixels, 0,0,config.width,config.height, blurRadius);
+  }
   return function(x, y) {
   
     let b;
