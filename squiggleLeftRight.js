@@ -4,8 +4,10 @@ postMessage(['sliders', defaultControls.concat([
   {label: 'Frequency', value: 150, min: 5, max: 256},
   {label: 'Line Count', value: 50, min: 10, max: 200},
   {label: 'Amplitude', value: 1, min: 0.1, max: 5, step: 0.1},
-  {label: 'Sampling', value: 1, min: 0.5, max: 2.9, step: 0.1},
-  {label: 'Join Ends', type:'checkbox'},
+  {label: 'Sampling', value: 1, min: 0.5, max: 2.9, step: 0.1},,
+  {label: 'Modulation', type:'select', options:['both', 'AM', 'FM']},
+  {label: 'Join Ends', type:'checkbox'}
+
 ])]);
 
 
@@ -34,8 +36,8 @@ onmessage = function(e) {
 
     for (let x = toggle? spacing: width-spacing; (toggle && x <= width) || (!toggle && x >= 0); x += toggle?spacing:-spacing ) {
       let z = getPixel(x, y)
-      let r = amplitude * z / lineCount;
-      a += z / frequency;
+      let r = amplitude * (config.Modulation=="AM" || config.Modulation=="both"?z:100) / lineCount;
+      a += (config.Modulation=="FM" || config.Modulation=="both"?z:100) / frequency;
       currentLine.push([x, y + Math.sin(a)*r]);
     }
 
