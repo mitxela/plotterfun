@@ -358,8 +358,8 @@ const svgNS = "http://www.w3.org/2000/svg"
 function resetSVG(){
   // erase existing contents
   let c; while (c = svg.firstChild) svg.removeChild(c)
-  svg.setAttribute("width",config.width)
-  svg.setAttribute("height",config.height)
+  svg.setAttribute("width",config.width+80)
+  svg.setAttribute("height",config.height+20)
   svg.setAttribute("viewbox", `0 0 ${config.width} ${config.height}`)
   svg.style.background=config.Inverted?"black":"white";
   window.mainpath=document.createElementNS(svgNS, "path");
