@@ -8,15 +8,11 @@ postMessage(['sliders', defaultControls.concat([
 ])]);
 
 
-function square(x, y, r) {
-
-}
-
 onmessage = function (e) {
   const [config, pixData] = e.data;
 
   const major = (config.width + config.height) / config.Divisions / 2;
-  const alternated = config.Interlaced;
+  const interlaced = config.Interlaced;
   const factor = config.Factor;
   const diamond = config.Diamond;
 
@@ -30,7 +26,7 @@ onmessage = function (e) {
 
   for (let y = hm; y < config.height; y += major) {
     tog = !tog;
-    let xOff = (alternated && tog) ? major / 2 : 0;
+    let xOff = (interlaced && tog) ? major / 2 : 0;
     for (let x = hm + xOff; x < config.width; x += major) {
       //circles in the pixel center
       let z = getPixel(x, y);
