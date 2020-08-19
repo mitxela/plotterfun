@@ -362,7 +362,7 @@ function resetSVG(){
   let c; while (c = svg.firstChild) svg.removeChild(c)
   svg.setAttribute("width",config.width)
   svg.setAttribute("height",config.height)
-  svg.setAttribute("viewbox", `0 0 ${config.width} ${config.height}`)
+  svg.setAttribute("viewBox", `0 0 ${config.width} ${config.height}`)
   svg.style.background=config.Inverted?"black":"white";
   window.mainpath=document.createElementNS(svgNS, "path");
   mainpath.setAttributeNS(null, "style", "stroke-width: 2px; fill: none; stroke: " + (config.Inverted?"white":"black"))
