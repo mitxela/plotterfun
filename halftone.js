@@ -3,6 +3,7 @@ importScripts('helpers.js', 'external/stackblur.min.js')
 postMessage(['sliders', defaultControls.concat([
   { label: 'Divisions', value: 25, min: 10, max: 100 },
   { label: 'Factor', value: 100, min: 10, max: 400 },
+  { label: 'Cutoff', value: 0, min: 0, max: 254},
   { label: 'Interlaced', type: 'checkbox' },
   { label: 'Diamond', type: 'checkbox' },
 ])]);
@@ -30,6 +31,7 @@ onmessage = function (e) {
     for (let x = hm + xOff; x < config.width; x += major) {
       //circles in the pixel center
       let z = getPixel(x, y);
+      if (z < config.Cutoff) continue;
       let radious = z * hm / 255 * factor / 100;
       if (!diamond) {
         circles.push({ x: x - hm / 2, y: y - hm / 2, r: radious });
