@@ -51,8 +51,8 @@ function autocontrast(pixData, cutoff){
 
   function luma(x,y) {
     let i = 4*(x+width*y)
-    return pixData.data[i]*0.299 + pixData.data[i+1]*0.587 + pixData.data[i]*0.114 // ITU-R 601-2
-//    return pixData.data[i]*0.2125 + pixData.data[i+1]*0.7154 + pixData.data[i]*0.0721 // ITU-R 709
+    return pixData.data[i]*0.299 + pixData.data[i+1]*0.587 + pixData.data[i+2]*0.114 // ITU-R 601-2
+//    return pixData.data[i]*0.2125 + pixData.data[i+1]*0.7154 + pixData.data[i+2]*0.0721 // ITU-R 709
   }
 
   let hist = []
