@@ -78,7 +78,7 @@ Algorithm:
 <option value=halftone.js>Halftone</option>
 <option value=boxes.js>Boxes</option>
 </select>
-<img id=buffering src=loading.gif style='vertical-align:middle; display:none'>
+<img id=buffering src=loading.gif style='vertical-align:middle; display:inline-block; visibility:hidden;'>
 </form>
 <form id=algoParams></form>
 
@@ -312,7 +312,7 @@ function appendScript(src) {
 }
 
 function loadWorker(src){
-  buffering.style.display='inline-block'
+  buffering.style.visibility='visible'
   if (window.myWorker) myWorker.terminate()
 
   if (window.location.protocol == 'file:') {
@@ -335,7 +335,7 @@ function loadWorker(src){
 
     // setup, declare parameters
     if (type == 'sliders') {
-      buffering.style.display='none'
+      buffering.style.visibility='hidden'
       if (src==window.algo) return;
       window.algo=src
       algoParams.innerHTML="";
