@@ -10,8 +10,8 @@ onmessage = function(e) {
     const [ config, pixData ] = e.data;  
 
     // Slider variables
-    const spacing = parseFloat(config.Spacing)
-    const size = parseFloat(config.Size)
+    const spacing = parseFloat(config['Box Spacing'])
+    const size = parseFloat(config['Box Size'])
     const enRan = config.Random
 
     // Image processor (gets a value for the current pixel)
