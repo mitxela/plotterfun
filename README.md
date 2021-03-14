@@ -10,7 +10,7 @@ The aim is to make it simple to develop new algorithms. Each algorithm is a sepa
 
 Based on [SquiggleCam](https://msurguy.github.io/SquiggleCam/) / [SquiggleDraw](https://github.com/gwygonik/SquiggleDraw). The left/right, spiral and PolygonSpiral versions apply the same squiggling to different paths.
 
-### SippleGen
+### StippleGen
 
 Iterative weighted voronoi stippling, with 2-opt travelling-salesman route optimization. I love [StippleGen](https://github.com/evil-mad/stipplegen) but it runs very slowly, and because it's single threaded the interface freezes while it's running. In porting it to javascript, I significantly rewrote parts of it in order to get it to run much faster.
 
