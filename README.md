@@ -22,6 +22,13 @@ Port of [linedraw.py by LingDong-](https://github.com/LingDong-/linedraw)
 
 ### Other algorithms
 
+- __Halftone__ by HomineLudens
+- __Boxes__ by MarkJB
+- __Random dots__ by Tim Koop
+- __Jaggy__ by Tim Koop
+
+Pull requests for new algorithms welcome!
+
 The rest are things I came up with on my own. Delaunay is very similar to StippleGen, but after the weighted voronoi iteration the Delaunay Triangulation is plotted. There are a few variations on squiggles (sawtooth, springs) and other algorithms not based on anything in particular. Try them out, it should be fairly clear what each control does.
 
 ## Usage
