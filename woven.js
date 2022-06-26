@@ -10,8 +10,22 @@ postMessage(['sliders', defaultControls.concat([
 	{label: 'Frequency', value: 150, min: 5, max: 256},
 	{label: 'Line Count', value: 8, min: 5, max: 200},
 	{label: 'Cosine', type: 'checkbox' },
+	{label: 'Random', type: 'checkbox' },
+	{label: 'Power', type:'select', value:2, options:[1/2, 1, 2, 3]}
 ])]);
 
+
+// Thanks to https://gist.github.com/tionkje/6ab66360dcfe9a9e2b5560742d259389
+function createRandFunction(seedString) {
+    for (var i = 0, h = 1779033703 ^ seedString.length; i < seedString.length; i++) {
+        h = Math.imul(h ^ seedString.charCodeAt(i), 3432918353);
+        h = h << 13 | h >>> 19;
+    } return function () {
+        h = Math.imul(h ^ (h >>> 16), 2246822507);
+        h = Math.imul(h ^ (h >>> 13), 3266489909);
+        return ((h ^= h >>> 16) >>> 0) / 4294967295;
+    }
+}
 
 onmessage = function(e) {
 	const [ config, pixData ] = e.data;
@@ -21,21 +35,26 @@ onmessage = function(e) {
 	const frequency = config.Frequency;
 	const incr_y = Math.floor(config.height / lineCount);
 	const cosine = config.Cosine;
+	const random = config.Random;
+	const power = config.Power;
 	output = [];
 
 	let order = Array.from(Array(lineCount).keys())
+	dotRand = createRandFunction("");
 	
 	for (let x = 0; x < config.width; x += frequency) {
-		console.log(x)
-		console.log(order)
+		//console.log(x)
+		//console.log(order)
 		output.push([...order])
 		for (let l = 0; l<lineCount; l++){
 			let z = getPixel(x, l*incr_y)
-			//console.log(x,l*incr_y,z)
-			if (z > 100 && l!=lineCount-1 ){
-				[order[l], order[l+1]] = [order[l+1], order[l]]
-				console.log("swap", l, l+1)
-				l++ // skip next line
+			//console.log(z / 255.0)
+			if ((!random && z > 100) || (random && Math.pow(z/255.0,power) > dotRand())){
+				if (l!=lineCount-1 ){
+					[order[l], order[l+1]] = [order[l+1], order[l]]
+					//console.log("swap", l, l+1)
+					l++ // skip next line
+				}
 			}
 		}
 	}
@@ -43,13 +62,13 @@ onmessage = function(e) {
 	// create map
 	lineMap = []
 	for (let x = 0; x < output.length; x++) {
-		console.log(x)
+		//console.log(x)
 		let map = []
 		for (let l = 0; l<lineCount; l++){
 			let v = output[x][l]
 			map[v] = l
 		}
-		console.log(map)
+		//console.log(map)
 		lineMap.push([...map])
 	}
 
