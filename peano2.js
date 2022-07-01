@@ -2,8 +2,8 @@ importScripts('helpers.js')
 
 postMessage(['sliders', defaultControls.concat([
   {label: 'Order', value: 3, min: 1, max: 6},
-  {label: 'Hblocks', value: 3, min: 1, max: 5, step: 2},
-  {label: 'Vblocks', value: 1, min: 1, max: 5},
+  {label: 'Hblocks', value: 1, min: 1, max: 15},
+  {label: 'Vblocks', value: 1, min: 1, max: 15},
 ])]);
 
 // Peano curve
@@ -106,18 +106,24 @@ onmessage = function(e) {
   let vscale = config.height/(maxsize*vblocks)
   let scale = [hscale,vscale] // scale represents mismatch between pixels and line units
 
-  line = [[0,0]] // add first point
-  //addlevel(maxorder,0,0,line, 0)
-  //addlevel(maxorder,maxsize,0,line, 1)
-  //addlevel(maxorder,2*maxsize,0,line, 0)
+
+  let heven = ((hblocks+1)%2)
+  veven = ((vblocks+1)%2)
+  line = [[veven*hscale*maxsize,heven*config.height]] // add first point
+  if (heven){
+    for (let vblock = vblocks-1; vblock >= 0; vblock--){
+      addlevel(maxorder,0,vblock*maxsize,line, ((vblock)%2)+1,scale)
+    }
+  }
+  
   for (let vblock = 0; vblock < vblocks; vblock++){
     if (!(vblock%2)){
-      for (let hblock = 0; hblock < hblocks; hblock++) {
-        addlevel(maxorder,hblock*maxsize,vblock*maxsize,line, (hblock%2),scale)
+      for (let hblock = heven; hblock < hblocks; hblock++) {
+        addlevel(maxorder,hblock*maxsize,vblock*maxsize,line, ((hblock+heven)%2),scale)
       }
     } else {
-      for (let hblock = hblocks-1; hblock >= 0; hblock--) {
-        addlevel(maxorder,hblock*maxsize,vblock*maxsize,line, ((hblock+1)%2)+2,scale)
+      for (let hblock = hblocks-1; hblock >= heven; hblock--) {
+        addlevel(maxorder,hblock*maxsize,vblock*maxsize,line, ((hblock+heven+1)%2)+2,scale)
       }
     }
   }
