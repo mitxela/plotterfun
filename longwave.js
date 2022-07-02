@@ -1,9 +1,10 @@
 importScripts('helpers.js')
 
 postMessage(['sliders', defaultControls.concat([
-  {label: 'Frequency', value: 50, min: 1, max: 100},
-  {label: 'Amplitude', value: 1, min: 0.1, max: 5, step: 0.1},
+  {label: 'Wave Speed', value: 20, min: 1, max: 100},
+  {label: 'Wave Amplitude', value: 10, min: 0, max: 50, step: 0.1},
   {label: 'Step size', value: 5, min: 1, max: 20, step: 0.1},
+  {label: 'Simplify', value: 10, min: 1, max: 50, step: 0.1},
   {label: 'Depth', value: 1, min: 1, max: 8},
   {label: 'Direction', type:'select', value:'Vertical', options:['Vertical', 'Horizontal', 'Both']}
 ])]);
@@ -15,13 +16,14 @@ onmessage = function(e) {
 
 
   const lineSpacing = 2*config['Step size'];
-  const waveFreq = config.Frequency/config.width;
-  const waveAmplitude = config.Amplitude*20;
+  const waveFreq = Math.pow(config['Wave Speed'],0.8)/config.width;
+  const waveAmplitude = config['Wave Amplitude']/50/waveFreq;
+  const simplify = config.Simplify;
 
   const lines = [];
 
   const t = [];
-  for (let i=0;i<config.Depth;i++) t.push( (i+1)*256/(config.Depth+1) )
+  for (let i=0;i<config.Depth;i++) t.push( 128+i*128/config.Depth )
   const thresholds = t.concat(t.slice(0,t.length-1).reverse())
 
   let ln = 0;
@@ -30,11 +32,15 @@ onmessage = function(e) {
     for (let sx = -waveAmplitude; sx <= config.width + waveAmplitude; sx += lineSpacing) {
       let line = [];
       let threshold = thresholds[ln++ % thresholds.length];
+      let hysteresis = 0;
 
       for (let y =0; y < config.height; y ++) {
         let nx = sx + Math.sin( y*waveFreq )*waveAmplitude;
-        
-        if (nx>0 && nx<config.width && getPixel(nx, y)>threshold) {
+        hysteresis += getPixel(nx, y)>threshold ? 1:-1;
+        if (hysteresis<= -simplify) hysteresis= -simplify;
+        if (hysteresis> simplify) hysteresis= simplify;
+
+        if (nx>0 && nx<config.width && hysteresis>0) {
           line.push([nx, y])
         } else {
           if (line.length) {
@@ -51,11 +57,15 @@ onmessage = function(e) {
     for (let sy = -waveAmplitude; sy <= config.height + waveAmplitude; sy += lineSpacing) {
       let line = [];
       let threshold = thresholds[ln++ % thresholds.length];
+      let hysteresis = 0;
 
       for (let x =0; x < config.width; x ++) {
         let ny = sy + Math.sin( x*waveFreq )*waveAmplitude;
-        
-        if (ny>0 && ny<config.height && getPixel(x, ny)>threshold) {
+        hysteresis += getPixel(x, ny)>threshold ? 1:-1;
+        if (hysteresis<= -simplify) hysteresis= -simplify;
+        if (hysteresis> simplify) hysteresis= simplify;
+
+        if (ny>0 && ny<config.height && hysteresis>0) {
           line.push([x, ny])
         } else {
           if (line.length) {
