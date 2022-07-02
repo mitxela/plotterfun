@@ -274,7 +274,8 @@ function addController(control, form){
     }
     l.append(control.label+': ')
     l.append(s)
-    form.append(l)
+    p.append(l)
+    form.append(p)
     return
   } else if (control.type=='checkbox') {
     if (config[control.label]!==undefined) s.checked = config[control.label]
