@@ -6,7 +6,8 @@ postMessage(['sliders', defaultControls.concat([
   {label: 'Step size', value: 5, min: 1, max: 20, step: 0.1},
   {label: 'Simplify', value: 10, min: 1, max: 50, step: 0.1},
   {label: 'Depth', value: 1, min: 1, max: 8},
-  {label: 'Direction', type:'select', value:'Vertical', options:['Vertical', 'Horizontal', 'Both']}
+  {label: 'Direction', type:'select', value:'Vertical', options:['Vertical', 'Horizontal', 'Both']},
+  {label: 'Optimize route', type:'checkbox', checked:false}
 ])]);
 
 
@@ -20,7 +21,7 @@ onmessage = function(e) {
   const waveAmplitude = config['Wave Amplitude']/50/waveFreq;
   const simplify = config.Simplify;
 
-  const lines = [];
+  let lines = [];
 
   const t = [];
   for (let i=0;i<config.Depth;i++) t.push( 128+i*128/config.Depth )
@@ -78,6 +79,12 @@ onmessage = function(e) {
     }
   }
 
+  if (config['Optimize route']) {
+    postMessage(['msg', "Optimizing..."]);
+    lines = sortlines(lines)
+    postMessage(['msg', ""]);
+  }
+  
   postLines(lines);
   
 }
