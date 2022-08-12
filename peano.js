@@ -1,3 +1,6 @@
+/**
+ * Algorithm by j-waal
+ */
 importScripts('helpers.js')
 
 postMessage(['sliders', defaultControls.concat([
