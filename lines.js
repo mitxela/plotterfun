@@ -4,13 +4,13 @@
 
 importScripts('helpers.js')
 
-postMessage(['sliders', defaultControls.concat([
+postMessage(['sliders', [
     { label: 'Spacing', value: 5, min: 1, max: 20, step: 1 },
     { label: 'Threshold', value: 128, min: 0, max: 255, step: 1 },
     { label: 'Minlenght', value: 1, min: 0, max: 32, step: 1 },
 	{ label: 'Alternate', type:'checkbox', checked:false},
 	{ label: 'Direction', type:'select', value:'Horizontal', options:['Horizontal','Vertical','Both']},
-])]);
+]]);
 
 
 
