@@ -4,7 +4,7 @@
 importScripts('helpers.js')
 
 postMessage(['sliders', defaultControls.concat([
-  {label: 'Order', value: 3, min: 1, max: 6},
+  {label: 'Order', value: 5, min: 1, max: 6},
   {label: 'Hblocks', value: 1, min: 1, max: 15},
   {label: 'Vblocks', value: 1, min: 1, max: 15},
 ])]);
