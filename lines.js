@@ -66,7 +66,7 @@ onmessage = function (e) {
 			}else{
 				points = points.concat(thisline.reverse())
 			}
-			if (alternate && thisline.length){ // dont change direction on emty lines
+			if (alternate && thisline.length){ // dont change direction on empty lines
 				toggle=!toggle;
 			}
 		}

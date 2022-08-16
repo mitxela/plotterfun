@@ -37,10 +37,10 @@ onmessage = function(e) {
 	const cosine = config.Cosine;
 	const random = config.Random;
 	const power = config.Power;
-	output = [];
+	let output = [];
 
 	let order = Array.from(Array(lineCount).keys())
-	dotRand = createRandFunction("");
+	const dotRand = createRandFunction("");
 	
 	for (let x = 0; x < config.width; x += frequency) {
 		//console.log(x)
@@ -60,7 +60,7 @@ onmessage = function(e) {
 	}
 
 	// create map
-	lineMap = []
+	let lineMap = []
 	for (let x = 0; x < output.length; x++) {
 		//console.log(x)
 		let map = []
@@ -73,7 +73,7 @@ onmessage = function(e) {
 	}
 
 	//convert to image
-	lines = []
+	let lines = []
 	for (let l = 0; l<lineCount; l++){
 		let line = []
 		line.push([0, l*incr_y])
