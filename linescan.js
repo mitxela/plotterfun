@@ -18,9 +18,9 @@ onmessage = function (e) {
     const [config, pixData] = e.data;
 
     // User variables
-    const spacing = config.Spacing
+    const spacing = config.Spacing // spacing between lines
 	const threshold = config.Threshold
-	const minlenght = config.Minlenght // get rid of short line segments
+	const minlenght = config.Minlenght // dont output short line segments
 	const direction = config.Direction
 	const alternate = config.Alternate
 
@@ -30,18 +30,20 @@ onmessage = function (e) {
     // Create an empty array of points
     let points = [];
 	if (direction == 'Horizontal' || direction == 'Both'){
-		let toggle = true;
+		let toggle = true; // toggle to alternate line direction
 		for (let y = 0; y < config.height; y += spacing) { // scan horizontal
 			let thisline = []
-			let mode = 0
+			let mode = false
 			let storex
 			for (let x = 0; x <= config.width - 1; x += 1) {
 				pixelval = getPixel(x, y);
-				if (pixelval > threshold && mode == 0){
+				if (pixelval > threshold && mode == false){
+					// start line here
 					storex = x
-					mode = 1
+					mode = true
 				}
-				if (pixelval < threshold && mode == 1){
+				if (pixelval < threshold && mode == true){
+					// store only the start and end of the lines
 					if (x-storex > minlenght){
 						if (toggle){
 							thisline.push([[storex ,y], [x ,y]]);
@@ -49,10 +51,10 @@ onmessage = function (e) {
 							thisline.push([[x ,y], [storex ,y]]);
 						}
 					}
-					mode = 0
+					mode = false
 				}
 			}
-			if (mode == 1){
+			if (mode == true){
 				if (config.width-storex > minlenght){
 					if (toggle){
 						thisline.push([[storex ,y], [config.width ,y]]);
@@ -72,18 +74,20 @@ onmessage = function (e) {
 		}
 	}
 	if (direction == 'Vertical' || direction == 'Both'){
-		let toggle = true;
+		let toggle = true; // toggle to alternate line direction
 		for (let x = 0; x < config.width; x += spacing) { // scan vertical
 			let thisline = []
-			let mode = 0
+			let mode = false
 			let storey
 			for (let y = 0; y <= config.height - 1; y += 1) {
 				pixelval = getPixel(x, y);
-				if (pixelval > threshold && mode == 0){
+				if (pixelval > threshold && mode == false){
+					// start line here
 					storey = y
-					mode = 1
+					mode = true
 				}
-				if (pixelval < threshold && mode == 1){
+				if (pixelval < threshold && mode == true){
+					// store only the start and end of the lines
 					if (y-storey > minlenght){
 						if (toggle){
 							thisline.push([[x ,storey], [x ,y]]);
@@ -91,10 +95,10 @@ onmessage = function (e) {
 							thisline.push([[x ,y], [x ,storey]]);
 						}
 					}
-					mode = 0
+					mode = false
 				}
 			}
-			if (mode == 1){
+			if (mode == true){
 				if (config.height-storey > minlenght){
 					if (toggle){
 						thisline.push([[x ,storey], [x, config.height]]);
@@ -108,7 +112,7 @@ onmessage = function (e) {
 			}else{
 				points = points.concat(thisline.reverse())
 			}
-			if (alternate && thisline.length){ // dont change direction on emty lines
+			if (alternate && thisline.length){ // dont change direction on empty lines
 				toggle=!toggle;
 			}
 		}

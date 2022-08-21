@@ -40,35 +40,31 @@ onmessage = function(e) {
 	let output = [];
 
 	let order = Array.from(Array(lineCount).keys())
+	// store an array with lines we can swap
 	const dotRand = createRandFunction("");
 	
 	for (let x = 0; x < config.width; x += frequency) {
-		//console.log(x)
-		//console.log(order)
 		output.push([...order])
 		for (let l = 0; l<lineCount; l++){
 			let z = getPixel(x, l*incr_y)
-			//console.log(z / 255.0)
+			// decide to swap two lines
 			if ((!random && z > 100) || (random && Math.pow(z/255.0,power) > dotRand())){
-				if (l!=lineCount-1 ){
-					[order[l], order[l+1]] = [order[l+1], order[l]]
-					//console.log("swap", l, l+1)
-					l++ // skip next line
+				if (l!=lineCount-1 ){ // can not swap the last line
+					[order[l], order[l+1]] = [order[l+1], order[l]] // swap lines
+					l++ // skip next line. line can only be swapped once per column
 				}
 			}
 		}
 	}
 
-	// create map
 	let lineMap = []
+	// convert order of lines to the path a line has to take
 	for (let x = 0; x < output.length; x++) {
-		//console.log(x)
 		let map = []
 		for (let l = 0; l<lineCount; l++){
 			let v = output[x][l]
 			map[v] = l
 		}
-		//console.log(map)
 		lineMap.push([...map])
 	}
 
