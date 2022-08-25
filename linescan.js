@@ -7,7 +7,7 @@ importScripts('helpers.js')
 postMessage(['sliders', [
     { label: 'Spacing', value: 5, min: 1, max: 20, step: 1 },
     { label: 'Threshold', value: 128, min: 0, max: 255, step: 1 },
-    { label: 'Minlenght', value: 1, min: 0, max: 32, step: 1 },
+    { label: 'Minlength', value: 1, min: 0, max: 32, step: 1 },
 	{ label: 'Alternate', type:'checkbox', checked:false},
 	{ label: 'Direction', type:'select', value:'Horizontal', options:['Horizontal','Vertical','Both']},
 ]]);
@@ -20,7 +20,7 @@ onmessage = function (e) {
     // User variables
     const spacing = config.Spacing // spacing between lines
 	const threshold = config.Threshold
-	const minlenght = config.Minlenght // dont output short line segments
+	const minlength = config.Minlength // dont output short line segments
 	const direction = config.Direction
 	const alternate = config.Alternate
 
@@ -44,7 +44,7 @@ onmessage = function (e) {
 				}
 				if (pixelval < threshold && mode == true){
 					// store only the start and end of the lines
-					if (x-storex > minlenght){
+					if (x-storex > minlength){
 						if (toggle){
 							thisline.push([[storex ,y], [x ,y]]);
 						}else{
@@ -55,7 +55,7 @@ onmessage = function (e) {
 				}
 			}
 			if (mode == true){
-				if (config.width-storex > minlenght){
+				if (config.width-storex > minlength){
 					if (toggle){
 						thisline.push([[storex ,y], [config.width ,y]]);
 					}else{
@@ -88,7 +88,7 @@ onmessage = function (e) {
 				}
 				if (pixelval < threshold && mode == true){
 					// store only the start and end of the lines
-					if (y-storey > minlenght){
+					if (y-storey > minlength){
 						if (toggle){
 							thisline.push([[x ,storey], [x ,y]]);
 						}else{
@@ -99,7 +99,7 @@ onmessage = function (e) {
 				}
 			}
 			if (mode == true){
-				if (config.height-storey > minlenght){
+				if (config.height-storey > minlength){
 					if (toggle){
 						thisline.push([[x ,storey], [x, config.height]]);
 					}else{
