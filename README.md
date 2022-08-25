@@ -26,6 +26,7 @@ Port of [linedraw.py by LingDong-](https://github.com/LingDong-/linedraw)
 - __Boxes__ by MarkJB
 - __Random dots__ by Tim Koop
 - __Jaggy__ by Tim Koop
+- __Linescan__, __Peano__ and __Woven__ by J-Waal
 
 Pull requests for new algorithms welcome!
 
