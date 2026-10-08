@@ -24,9 +24,9 @@ button:hover{background:#5d90bc !important;color:#fff}
 #imgselect,#webcam {text-align:justify;text-align-last:justify}
 #algoSelect{background:#d2e4f0;margin:5px 0;border:solid #5d90bc;border-width:2px 0 2px 0}
 a:hover{color:red}
-canvas{ /* checkerboard pattern */ 
+canvas{ /* checkerboard pattern */
   background-color: #f8f8f8;
-  background-image: 
+  background-image:
     linear-gradient(45deg, #e0e0e0 25%, transparent 25%, transparent 75%, #e0e0e0 75%, #e0e0e0),
     linear-gradient(45deg, #e0e0e0 25%, transparent 25%, transparent 75%, #e0e0e0 75%, #e0e0e0);
   background-size: 40px 40px;
@@ -59,7 +59,7 @@ H:<input id=pch type=number min=10 value=600 oninput='changeSize()'>
 </div>
 
 <form id=algoSelect>
-Algorithm: 
+Algorithm:
 <select id=algorithm onchange='loadWorker(this.value)'>
 <option value=squiggle.js>Squiggle</option>
 <option value=squiggleLeftRight.js>Squiggle Left/Right</option>
@@ -84,6 +84,7 @@ Algorithm:
 <option value=woven.js title="Algorithm by J-Waal">Woven</option>
 <option value=peano.js title="Algorithm by J-Waal">Peano</option>
 <option value=margins.js title="Algorithm by labusaid">Margins</option>
+<option value=contours.js>Contours (Mickeymoe1992)</option>
 </select>
 <img id=buffering src=loading.gif style='vertical-align:middle; display:inline-block; visibility:hidden;'>
 </form>
@@ -93,7 +94,7 @@ Algorithm:
 
 <div style='padding:10px 15px'>
  plotterfun by mitxela<br>
- <a href=https://mitxela.com/projects/plotting>more info</a> &bull; 
+ <a href=https://mitxela.com/projects/plotting>more info</a> &bull;
  <a href=https://github.com/mitxela/plotterfun>source code</a>
 </div>
 
@@ -161,7 +162,7 @@ function selectImage(){
 
       if (w>cw || h>ch) { ch=Math.round(cw*h/w) }
       else if (w>10&&h>10){ch=h;cw=w}
-      preview.height = pch.value = ch 
+      preview.height = pch.value = ch
       preview.width = pcw.value = cw
 
       scale = Math.min(ch/h, cw/w)
@@ -209,7 +210,7 @@ preview.addEventListener("wheel", function(e){
 function tabWebcam(){
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     alert("could not open webcam");
-  } else 
+  } else
     navigator.mediaDevices.getUserMedia({video: {width:800}}).then(function(v) {
       video.srcObject = v;
       webcam.style.display='block'
@@ -251,7 +252,7 @@ function process(){
 }
 function ctrlChange(control){
   if (!imageset) return;
-  if (!control.noRestart) 
+  if (!control.noRestart)
     process()
   else
     sendToWorker([ window.config ]);
@@ -285,7 +286,7 @@ function addController(control, form){
     if (config[control.label]!==undefined) s.checked = config[control.label]
     s.oninput=e=>{config[control.label] = s.checked; ctrlChange(control)}
     config[control.label] = s.checked
-    l.append(s)  
+    l.append(s)
   } else {
     let n = document.createElement('input')
     n.type="text" // type=number does not allow fractions
@@ -356,12 +357,12 @@ function loadWorker(src){
 
     } else if (type == 'dbg'){
       window.data = data
-      console.log(data) 
+      console.log(data)
 
     // vector data result
     }else if (type == 'svg-path'){
-      mainpath.setAttributeNS(null, "d", data) 
-    } 
+      mainpath.setAttributeNS(null, "d", data)
+    }
   }
 }
 
